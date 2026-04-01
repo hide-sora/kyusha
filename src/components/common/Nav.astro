@@ -1,0 +1,36 @@
+---
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { href: '/', label: 'TOP', icon: 'i-ph-flag-checkered-duotone' },
+  { href: '/map', label: 'MAP', icon: 'i-ph-map-trifold-duotone' },
+  { href: '/schedule', label: 'TIME', icon: 'i-ph-clock-countdown-duotone' },
+  { href: '/auction', label: 'BID', icon: 'i-ph-gavel-duotone' },
+  { href: '/vote', label: 'VOTE', icon: 'i-ph-trophy-duotone' },
+];
+---
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-xl border-t border-border safe-area-bottom">
+  <div class="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
+    {navItems.map(item => {
+      const isActive = currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href));
+      return (
+        <a
+          href={item.href}
+          class:list={[
+            'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all',
+            isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+          ]}
+        >
+          <span class:list={[item.icon, 'text-xl', isActive && 'drop-shadow-[0_0_6px_hsl(42,85%,55%)]']} />
+          <span class="text-[10px] font-display font-600 tracking-wider">{item.label}</span>
+        </a>
+      );
+    })}
+  </div>
+</nav>
+
+<style>
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+</style>

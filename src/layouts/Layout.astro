@@ -1,0 +1,23 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = '旧車サミット2026', description = '水戸道楽TV YouTuber 旧車サミット2026 公式アプリ' } = Astro.props;
+const fullTitle = title === '旧車サミット2026' ? title : `${title} | 旧車サミット2026`;
+---
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#131720" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>{fullTitle}</title>
+</head>
+<body class="layout-base retro-stripe">
+  <slot />
+</body>
+</html>

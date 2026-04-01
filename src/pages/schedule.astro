@@ -1,0 +1,20 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/common/Nav.astro';
+import Timeline from '../components/Schedule/Timeline';
+---
+<Layout title="タイムスケジュール">
+  <main class="min-h-screen pb-20 pt-6">
+    <header class="px-5 mb-6">
+      <h1 class="section-title text-foreground">
+        <span class="i-ph-clock-countdown-duotone text-primary mr-2 align-middle" />
+        タイムスケジュール
+      </h1>
+      <p class="text-xs text-muted-foreground mt-1">2026年4月26日(日) 9:00〜15:00</p>
+    </header>
+
+    <Timeline client:load />
+  </main>
+
+  <Nav />
+</Layout>

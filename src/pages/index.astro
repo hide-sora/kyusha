@@ -1,0 +1,139 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/common/Nav.astro';
+import Countdown from '../components/Countdown';
+
+const navCards = [
+  {
+    href: '/map',
+    icon: 'i-ph-map-trifold-duotone',
+    title: '会場マップ',
+    description: 'エリア案内・施設情報',
+    gradient: 'from-blue-600/20 to-cyan-600/20',
+  },
+  {
+    href: '/schedule',
+    icon: 'i-ph-clock-countdown-duotone',
+    title: 'タイムスケジュール',
+    description: 'イベント進行表',
+    gradient: 'from-emerald-600/20 to-teal-600/20',
+  },
+  {
+    href: '/auction',
+    icon: 'i-ph-gavel-duotone',
+    title: 'オークション',
+    description: '13:00〜 チャリティー入札',
+    gradient: 'from-amber-600/20 to-orange-600/20',
+  },
+  {
+    href: '/vote',
+    icon: 'i-ph-trophy-duotone',
+    title: '車両グランプリ投票',
+    description: '〜13:30 お気に入りの一台に投票',
+    gradient: 'from-red-600/20 to-pink-600/20',
+  },
+];
+---
+<Layout>
+  <main class="min-h-screen pb-20">
+    {/* ヒーローセクション */}
+    <section class="relative px-5 pt-12 pb-8 overflow-hidden">
+      {/* 背景のグロー */}
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-primary/8 rounded-full blur-[100px] pointer-events-none" />
+
+      <div class="relative text-center">
+        {/* 水戸道楽TV ラベル */}
+        <div class="inline-block mb-4">
+          <span class="text-xs font-display font-600 tracking-[0.2em] uppercase text-muted-foreground px-3 py-1.5 border border-border rounded-pill bg-secondary/50">
+            水戸道楽TV presents
+          </span>
+        </div>
+
+        {/* メインタイトル */}
+        <h1 class="mb-2">
+          <span class="block font-display font-700 text-lg tracking-wider text-muted-foreground uppercase">
+            YouTuber
+          </span>
+          <span class="block font-display font-900 text-4xl sm:text-5xl tracking-tight gold-shine bg-clip-text text-transparent leading-tight">
+            旧車サミット
+          </span>
+          <span class="block font-display font-700 text-5xl sm:text-6xl chrome-text tracking-tighter mt-1">
+            2026
+          </span>
+        </h1>
+
+        {/* 開催情報 */}
+        <div class="mt-5 space-y-1 text-sm text-muted-foreground">
+          <p class="font-500">
+            <span class="i-ph-calendar-duotone text-primary mr-1 align-middle" />
+            2026年4月26日(日) 9:00〜15:00
+          </p>
+          <p class="font-500">
+            <span class="i-ph-map-pin-duotone text-primary mr-1 align-middle" />
+            モビリティリゾートもてぎ 南コース
+          </p>
+          <p class="text-xs text-muted-foreground/70">雨天決行</p>
+        </div>
+
+        {/* カウントダウン */}
+        <div class="mt-8">
+          <Countdown client:load />
+        </div>
+      </div>
+    </section>
+
+    {/* ナビゲーションカード */}
+    <section class="px-4 pb-6">
+      <div class="grid grid-cols-2 gap-3 max-w-lg mx-auto">
+        {navCards.map((card, i) => (
+          <a
+            href={card.href}
+            class={`card-base group hover:border-primary/40 transition-all bg-gradient-to-br ${card.gradient} backdrop-blur-sm`}
+            style={`animation: fadeInUp 0.5s ${i * 0.1}s both cubic-bezier(0.16,1,0.3,1)`}
+          >
+            <span class={`${card.icon} text-3xl text-primary mb-3 block group-hover:scale-110 transition-transform`} />
+            <h2 class="font-display font-700 text-sm tracking-tight text-foreground">{card.title}</h2>
+            <p class="text-[11px] text-muted-foreground mt-1 leading-snug">{card.description}</p>
+            <span class="i-ph-caret-right-bold absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/30 text-lg group-hover:text-primary/60 transition-colors" />
+          </a>
+        ))}
+      </div>
+    </section>
+
+    {/* チケット情報 */}
+    <section class="px-4 pb-6">
+      <div class="max-w-lg mx-auto card-base bg-secondary/30">
+        <h3 class="font-display font-700 text-sm text-primary mb-3 tracking-wider uppercase flex items-center gap-2">
+          <span class="i-ph-ticket-duotone text-lg" />
+          チケット情報
+        </h3>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between items-center py-1.5 border-b border-border/50">
+            <span class="text-muted-foreground">展示車両チケット</span>
+            <span class="font-display font-600 text-foreground">¥8,000/台</span>
+          </div>
+          <div class="flex justify-between items-center py-1.5 border-b border-border/50">
+            <span class="text-muted-foreground">一般入場 (前売り)</span>
+            <span class="font-display font-600 text-foreground">¥1,500/人</span>
+          </div>
+          <div class="flex justify-between items-center py-1.5 border-b border-border/50">
+            <span class="text-muted-foreground">一般入場 (当日)</span>
+            <span class="font-display font-600 text-foreground">¥2,500/人</span>
+          </div>
+          <p class="text-[11px] text-muted-foreground/70 mt-2 leading-relaxed">
+            ※ 前売りチケットにはもてぎ入場料・駐車場代が含まれます。当日券は別途もてぎ入場料(大人¥1,900)・駐車場代(¥1,000)が必要です。
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Nav />
+</Layout>
+
+<style>
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

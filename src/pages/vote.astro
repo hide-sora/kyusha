@@ -1,0 +1,20 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/common/Nav.astro';
+import VotePage from '../components/Vote/VotePage';
+---
+<Layout title="車両グランプリ投票">
+  <main class="min-h-screen pb-20 pt-6">
+    <header class="px-5 mb-6">
+      <h1 class="section-title text-foreground">
+        <span class="i-ph-trophy-duotone text-primary mr-2 align-middle" />
+        車両グランプリ投票
+      </h1>
+      <p class="text-xs text-muted-foreground mt-1">投票締切: 13:30</p>
+    </header>
+
+    <VotePage client:load />
+  </main>
+
+  <Nav />
+</Layout>
