@@ -1,0 +1,149 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/common/Nav.astro';
+import { creators, sponsors } from '../data/creators';
+---
+<Layout title="出演者・協賛">
+  <main class="min-h-screen pb-28">
+    <header class="px-6 pt-12 pb-8 max-w-lg mx-auto">
+      <p class="label-upper text-secondary mb-2">Featured</p>
+      <h1 class="font-display font-800 text-4xl tracking-tight text-on-surface mb-3">
+        出演者・協賛
+      </h1>
+      <p class="text-sm text-on-surface-variant leading-relaxed">
+        旧車サミット2026に参加するYouTuberと協賛企業の紹介
+      </p>
+    </header>
+
+    <div class="px-5 max-w-lg mx-auto space-y-8">
+
+      {/* YouTuber セクション */}
+      <section>
+        <h2 class="font-display font-700 text-sm text-on-surface tracking-tight flex items-center gap-2 mb-4">
+          <div class="w-7 h-7 rounded-full flex-center bg-secondary-fixed">
+            <span class="i-ph-youtube-logo-duotone text-on-secondary-fixed text-sm" />
+          </div>
+          出演YouTuber
+        </h2>
+
+        <div class="space-y-3 reveal-stagger">
+          {creators.map((c, i) => (
+            <a
+              href={c.url || '#'}
+              target={c.url ? '_blank' : undefined}
+              rel={c.url ? 'noopener noreferrer' : undefined}
+              class:list={[
+                'block rounded-xl p-4 transition-all duration-200 card-press reveal',
+                i === 0
+                  ? 'bg-surface-container-lowest shadow-[0_20px_40px_rgba(46,51,54,0.06)]'
+                  : 'bg-surface-container-low hover:bg-surface-container-lowest',
+              ]}
+            >
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-full shrink-0 overflow-hidden bg-surface-container-highest">
+                  {c.image ? (
+                    <img src={c.image} alt={c.name} class="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div class="w-full h-full flex-center">
+                      <span class:list={[c.icon, 'text-xl text-on-surface-variant']} />
+                    </div>
+                  )}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-0.5 flex-wrap">
+                    <h3 class="font-display font-700 text-on-surface text-sm">{c.name}</h3>
+                    {i === 0 && (
+                      <span class="text-[9px] font-700 px-1.5 py-0.5 rounded-md bg-primary text-on-primary leading-none">主催</span>
+                    )}
+                    {c.zone && (
+                      <span class="text-[9px] font-700 px-1.5 py-0.5 rounded-md bg-tertiary-container text-on-tertiary-container leading-none">
+                        {c.zone}ゾーン
+                      </span>
+                    )}
+                  </div>
+                  <p class="text-xs text-on-surface-variant leading-relaxed line-clamp-1">{c.description}</p>
+                  {c.subscribers && (
+                    <p class="text-[11px] text-secondary font-600 mt-1 flex items-center gap-1">
+                      <span class="i-ph-users-duotone text-xs" />
+                      {c.subscribers}
+                    </p>
+                  )}
+                </div>
+                {c.url && (
+                  <span class="i-ph-arrow-square-out text-on-surface-variant/20 text-base shrink-0" />
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* 協賛企業 セクション */}
+      <section>
+        <h2 class="font-display font-700 text-sm text-on-surface tracking-tight flex items-center gap-2 mb-4">
+          <div class="w-7 h-7 rounded-full flex-center bg-tertiary-fixed">
+            <span class="i-ph-handshake-duotone text-on-tertiary-fixed text-sm" />
+          </div>
+          協賛企業
+        </h2>
+
+        <div class="space-y-3 reveal-stagger">
+          {sponsors.map((s, i) => (
+            <div
+              class="bg-surface-container-low rounded-xl p-4 hover:bg-surface-container-lowest transition-all duration-200 card-press reveal"
+            >
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-xl shrink-0 overflow-hidden bg-surface-container-highest flex-center">
+                  {s.image ? (
+                    <img src={s.image} alt={s.name} class="w-full h-full object-contain p-1" loading="lazy" />
+                  ) : (
+                    <span class:list={[s.icon, 'text-xl text-on-surface-variant']} />
+                  )}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-display font-700 text-on-surface text-sm mb-0.5">{s.name}</h3>
+                  <p class="text-xs text-on-surface-variant leading-relaxed line-clamp-2">{s.description}</p>
+                  <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                    {s.booth && (
+                      <span class="px-2 py-0.5 bg-tertiary-container text-on-tertiary-container rounded-md text-[9px] font-700 uppercase tracking-wider inline-flex items-center gap-1 leading-none">
+                        <span class="i-ph-map-pin-duotone text-[9px]" />
+                        {s.booth}
+                      </span>
+                    )}
+                    {s.subscribers && (
+                      <span class="text-[10px] text-secondary font-600 inline-flex items-center gap-1">
+                        <span class="i-ph-youtube-logo-duotone text-xs" />
+                        {s.subscribers}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* トークショー告知 */}
+      <section class="reveal">
+        <div class="bg-on-surface text-surface rounded-xl px-5 py-5 relative overflow-hidden">
+          <div class="absolute right-0 top-0 h-full w-32 bg-white/5 skew-x-[-20deg] translate-x-12" />
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="i-ph-microphone-stage-duotone text-2xl" />
+              <div>
+                <p class="font-display font-700 text-sm">YouTuberトークショー</p>
+                <p class="text-xs opacity-60">11:00〜 イベントステージ</p>
+              </div>
+            </div>
+            <p class="text-xs opacity-80 leading-relaxed">
+              自動車系YouTuberが勢揃い! ここでしか聞けないトークをお楽しみに。
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <Nav />
+</Layout>

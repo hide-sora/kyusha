@@ -13,11 +13,30 @@ const fullTitle = title === '旧車サミット2026' ? title : `${title} | 旧�
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="description" content={description} />
-  <meta name="theme-color" content="#131720" />
+  <meta name="theme-color" content="#f9f9fb" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <title>{fullTitle}</title>
 </head>
-<body class="layout-base retro-stripe">
+<body class="layout-base">
   <slot />
+  <script>
+    // Scroll-reveal IntersectionObserver
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+    function observeReveals() {
+      document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    }
+    observeReveals();
+    document.addEventListener('astro:page-load', observeReveals);
+  </script>
 </body>
 </html>

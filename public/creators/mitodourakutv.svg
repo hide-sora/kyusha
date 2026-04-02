@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="100" fill="#e63946"/>
+  <text x="100" y="78" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold" font-size="24">水戸</text>
+  <text x="100" y="110" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold" font-size="24">道楽</text>
+  <text x="100" y="142" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold" font-size="24">TV</text>
+</svg>

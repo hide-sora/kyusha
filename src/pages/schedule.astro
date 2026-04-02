@@ -4,13 +4,25 @@ import Nav from '../components/common/Nav.astro';
 import Timeline from '../components/Schedule/Timeline';
 ---
 <Layout title="タイムスケジュール">
-  <main class="min-h-screen pb-20 pt-6">
-    <header class="px-5 mb-6">
-      <h1 class="section-title text-foreground">
-        <span class="i-ph-clock-countdown-duotone text-primary mr-2 align-middle" />
+  <main class="min-h-screen pb-28">
+    <header class="px-6 pt-12 pb-4 max-w-lg mx-auto">
+      <p class="label-upper text-secondary mb-2">Event Schedule</p>
+      <h1 class="font-display font-800 text-3xl tracking-tight text-on-surface mb-3">
         タイムスケジュール
       </h1>
-      <p class="text-xs text-muted-foreground mt-1">2026年4月26日(日) 9:00〜15:00</p>
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-full text-xs font-600">
+          <span class="i-ph-calendar-duotone text-sm" />
+          2026/04/26(日)
+        </div>
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-tertiary-container text-on-tertiary-container rounded-full text-xs font-600">
+          <span class="i-ph-clock-duotone text-sm" />
+          9:00〜15:00
+        </div>
+      </div>
+      <p class="text-xs text-on-surface-variant mt-3 leading-relaxed">
+        終了したイベントには <span class="inline-flex items-center align-middle"><span class="i-ph-check-bold text-[10px]" /></span> が付きます。現在進行中のイベントが強調表示されます。
+      </p>
     </header>
 
     <Timeline client:load />

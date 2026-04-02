@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="16" fill="#c41e3a"/>
+  <text x="100" y="72" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold" font-size="18">トラスト</text>
+  <text x="100" y="110" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold" font-size="18">企画</text>
+  <text x="100" y="150" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-family="sans-serif" font-style="italic" font-size="12">Trust Kikaku</text>
+</svg>

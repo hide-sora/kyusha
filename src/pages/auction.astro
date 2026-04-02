@@ -4,13 +4,16 @@ import Nav from '../components/common/Nav.astro';
 import AuctionPage from '../components/Auction/AuctionPage';
 ---
 <Layout title="オークション">
-  <main class="min-h-screen pb-20 pt-6">
-    <header class="px-5 mb-6">
-      <h1 class="section-title text-foreground">
-        <span class="i-ph-gavel-duotone text-primary mr-2 align-middle" />
+  <main class="min-h-screen pb-28">
+    <header class="px-6 pt-12 pb-8 max-w-lg mx-auto">
+      <p class="label-upper text-tertiary mb-2">Charity Event</p>
+      <h1 class="font-display font-800 text-4xl tracking-tight text-on-surface mb-3">
         オークション
       </h1>
-      <p class="text-xs text-muted-foreground mt-1">13:00〜 チャリティーオークション</p>
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-tertiary-container text-on-tertiary-container rounded-full text-xs font-600">
+        <span class="i-ph-gavel-duotone text-base" />
+        13:00〜 チャリティーオークション
+      </div>
     </header>
 
     <AuctionPage client:load />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // イベント開始: 2026年4月26日 9:00 JST
 const EVENT_DATE = new Date('2026-04-26T09:00:00+09:00');
@@ -21,15 +21,36 @@ function calcTimeLeft(): TimeLeft | null {
   };
 }
 
-function CountUnit({ value, label }: { value: number; label: string }) {
+function FlipDigit({ value }: { value: string }) {
+  const prevRef = useRef(value);
+  const [flipping, setFlipping] = useState(false);
+
+  useEffect(() => {
+    if (prevRef.current !== value) {
+      setFlipping(true);
+      prevRef.current = value;
+      const t = setTimeout(() => setFlipping(false), 350);
+      return () => clearTimeout(t);
+    }
+  }, [value]);
+
+  return (
+    <span className={`inline-block ${flipping ? 'digit-flip-enter' : ''}`}>
+      {value}
+    </span>
+  );
+}
+
+function CountUnit({ value, label, pad = 2 }: { value: number; label: string; pad?: number }) {
+  const display = String(value).padStart(pad, '0');
   return (
     <div className="flex flex-col items-center">
-      <div className="relative overflow-hidden w-14 h-14 sm:w-16 sm:h-16 bg-secondary rounded-lg flex-center border border-border">
-        <span className="font-display font-700 text-2xl sm:text-3xl text-gold-gradient tabular-nums">
-          {String(value).padStart(2, '0')}
-        </span>
-      </div>
-      <span className="text-[10px] text-muted-foreground font-500 mt-1 uppercase tracking-wider">
+      <span className="font-display font-800 text-4xl tracking-tighter tabular-nums text-on-surface leading-none">
+        {display.split('').map((d, i) => (
+          <FlipDigit key={i} value={d} />
+        ))}
+      </span>
+      <span className="text-[9px] tracking-widest font-700 uppercase text-on-surface-variant mt-2">
         {label}
       </span>
     </div>
@@ -47,22 +68,22 @@ export default function Countdown() {
   if (!timeLeft) {
     return (
       <div className="text-center py-4">
-        <span className="font-display font-700 text-xl text-primary">
-          EVENT IS LIVE!
+        <span className="font-display font-800 text-2xl text-on-surface tracking-tight animate-pulse">
+          EVENT IS LIVE
         </span>
       </div>
     );
   }
 
   return (
-    <div className="flex gap-3 justify-center">
-      <CountUnit value={timeLeft.days} label="days" />
-      <span className="font-display text-2xl text-muted-foreground self-start mt-3.5">:</span>
-      <CountUnit value={timeLeft.hours} label="hrs" />
-      <span className="font-display text-2xl text-muted-foreground self-start mt-3.5">:</span>
-      <CountUnit value={timeLeft.minutes} label="min" />
-      <span className="font-display text-2xl text-muted-foreground self-start mt-3.5">:</span>
-      <CountUnit value={timeLeft.seconds} label="sec" />
+    <div className="flex items-center justify-between">
+      <CountUnit value={timeLeft.days} label="DAYS" />
+      <span className="font-display text-2xl font-300 text-outline-variant mb-4">:</span>
+      <CountUnit value={timeLeft.hours} label="HRS" />
+      <span className="font-display text-2xl font-300 text-outline-variant mb-4">:</span>
+      <CountUnit value={timeLeft.minutes} label="MIN" />
+      <span className="font-display text-2xl font-300 text-outline-variant mb-4">:</span>
+      <CountUnit value={timeLeft.seconds} label="SEC" />
     </div>
   );
 }

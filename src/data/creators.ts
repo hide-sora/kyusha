@@ -1,0 +1,123 @@
+export interface Creator {
+  name: string;
+  channel?: string;
+  description: string;
+  subscribers?: string;
+  icon: string;
+  url?: string;
+  zone?: string;
+  image?: string;
+}
+
+export interface Sponsor {
+  name: string;
+  description: string;
+  icon: string;
+  url?: string;
+  booth?: string;
+  image?: string;
+  subscribers?: string;
+}
+
+export const creators: Creator[] = [
+  {
+    name: '水戸道楽TV',
+    channel: '@mitodourakutv',
+    description: 'イベント主催。茨城を拠点に旧車・カスタムカー文化を発信する人気チャンネル。',
+    subscribers: '14万人',
+    icon: 'i-ph-star-duotone',
+    url: 'https://www.youtube.com/@mitodourakutv',
+    zone: 'A',
+    image: '/creators/mitodourakutv.svg',
+  },
+  {
+    name: 'とよちゃんガレージ',
+    channel: '@ToyochanGarage',
+    description: '自動車整備・カスタムを楽しく分かりやすく紹介するチャンネル。',
+    subscribers: '24.3万人',
+    icon: 'i-ph-wrench-duotone',
+    url: 'https://www.youtube.com/@ToyochanGarage',
+    image: '/creators/toyochan.svg',
+  },
+  {
+    name: 'シュンヤのガレージライフ',
+    channel: '@ShunyasGarageLife',
+    description: 'ガレージでの車いじりを中心に、カーライフの魅力を発信。',
+    subscribers: '21.8万人',
+    icon: 'i-ph-garage-duotone',
+    url: 'https://www.youtube.com/@ShunyasGarageLife',
+    image: '/creators/shunya.svg',
+  },
+  {
+    name: '水島 翔',
+    channel: '@MizushimaSho',
+    description: '車系YouTuberとして幅広いジャンルの車を紹介。',
+    subscribers: '18.8万人',
+    icon: 'i-ph-video-camera-duotone',
+    url: 'https://www.youtube.com/@MizushimaSho',
+    image: '/creators/mizushima.svg',
+  },
+  {
+    name: '車の板金塗装レストアGT',
+    channel: '@RestoreGT',
+    description: '板金塗装・レストアの技術をプロの視点から発信。',
+    subscribers: '20.1万人',
+    icon: 'i-ph-paint-roller-duotone',
+    url: 'https://www.youtube.com/@RestoreGT',
+    image: '/creators/restoregt.svg',
+  },
+  {
+    name: 'トイマンチーズ',
+    channel: '@Toimancheese',
+    description: '独自の目線で車の魅力を伝えるカーエンタメチャンネル。',
+    subscribers: '9.6万人',
+    icon: 'i-ph-microphone-duotone',
+    url: 'https://www.youtube.com/@Toimancheese',
+    image: '/creators/toimancheese.svg',
+  },
+  {
+    name: 'うぃきちゃんねる',
+    channel: '@wikichannel',
+    description: '旧車・ネオクラシックカーを中心にカーライフを配信。',
+    subscribers: '10.2万人',
+    icon: 'i-ph-camera-duotone',
+    url: 'https://www.youtube.com/@wikichannel',
+    image: '/creators/wikichannel.svg',
+  },
+];
+
+export const sponsors: Sponsor[] = [
+  {
+    name: '有限会社 小林製作所',
+    description: '精密切削加工のスペシャリスト。イベント限定の切削サイコロノベルティ抽選会を開催!',
+    icon: 'i-ph-gear-six-duotone',
+    booth: '小林製作所ブース',
+    image: '/sponsors/kobayashi.svg',
+  },
+  {
+    name: 'GARAGE CRAFT',
+    description: 'トータルカーサポート。車のカスタム・整備・板金塗装をワンストップで対応。',
+    icon: 'i-ph-wrench-duotone',
+    image: '/sponsors/garagecraft.svg',
+  },
+  {
+    name: 'WORLD IMPORT TOOLS',
+    description: '輸入工具の専門店。プロ仕様の工具を幅広く取り揃え。',
+    icon: 'i-ph-toolbox-duotone',
+    subscribers: '1.69万人',
+    image: '/sponsors/worldimporttools.svg',
+  },
+  {
+    name: 'レンタカーズ SEIWA',
+    description: 'レンタカーサービス。旧車・スポーツカーのレンタルも対応。',
+    icon: 'i-ph-car-duotone',
+    image: '/sponsors/seiwa.svg',
+  },
+  {
+    name: 'トラスト企画',
+    description: 'GT-R・スカイライン専門パーツショップ。純正・社外パーツを豊富に取り揃え。',
+    icon: 'i-ph-storefront-duotone',
+    subscribers: '15.6万人',
+    image: '/sponsors/trust.svg',
+  },
+];

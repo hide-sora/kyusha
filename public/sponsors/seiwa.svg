@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="16" fill="#0d5c2e"/>
+  <text x="100" y="72" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold" font-size="16">レンタカーズ</text>
+  <text x="100" y="120" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold" font-size="36" letter-spacing="3">SEIWA</text>
+</svg>

@@ -30,16 +30,13 @@ export default function VotePage() {
 
   const pb = getPb();
 
-  // 投票締切チェック
   useEffect(() => {
     const timer = setInterval(() => setVotingOpen(isVotingOpen()), 10000);
     return () => clearInterval(timer);
   }, []);
 
-  // ランキング取得
   const fetchRanking = useCallback(async () => {
     try {
-      // PocketBase から全投票を取得し、クライアント側で集計
       const records = await pb.collection('car_votes').getFullList({
         fields: 'car_number',
       });
@@ -53,24 +50,19 @@ export default function VotePage() {
         .sort((a, b) => b.count - a.count);
       setRanking(sorted);
     } catch {
-      // PB未接続時はデモデータなし
+      // PB未接続時
     }
   }, []);
 
   useEffect(() => {
     fetchRanking();
-
-    // リアルタイム購読
     const unsub = pb.collection('car_votes').subscribe('*', () => {
       fetchRanking();
     });
-
     return () => { unsub.then(fn => fn()); };
   }, [fetchRanking]);
 
-  // 投票送信
   const handleVote = useCallback(async () => {
-    // レート制限（10秒）
     if (Date.now() - lastVoteTime.current < 10000) {
       setMessage('少し間をあけてから投票してください');
       return;
@@ -102,45 +94,46 @@ export default function VotePage() {
     }
   }, [zone, number]);
 
-  // フィルターされたランキング
   const filteredRanking = filterZone
     ? ranking.filter(r => r.car_number.startsWith(filterZone))
     : ranking;
 
   return (
-    <div className="px-4 max-w-lg mx-auto space-y-5">
+    <div className="px-5 max-w-lg mx-auto space-y-5">
       {/* 投票フォーム */}
       {votingOpen ? (
-        <div className="card-base bg-gradient-to-br from-red-600/10 to-pink-600/10">
-          <h2 className="font-display font-700 text-sm text-primary mb-4 flex items-center gap-2">
-            <span className="i-ph-car-profile-duotone text-lg" />
+        <div className="card-elevated p-6">
+          <h2 className="font-display font-700 text-sm text-on-surface mb-4 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full flex-center bg-tertiary-fixed">
+              <span className="i-ph-car-profile-duotone text-lg text-on-tertiary-fixed" />
+            </div>
             お気に入りの一台に投票
           </h2>
 
-          <div className="flex gap-2 items-end">
-            {/* ゾーン選択 */}
-            <div className="shrink-0">
-              <label className="text-[10px] text-muted-foreground block mb-1">ゾーン</label>
-              <div className="flex gap-1">
-                {ZONE_IDS.map(z => (
-                  <button
-                    key={z}
-                    onClick={() => setZone(z)}
-                    className={`w-10 h-10 rounded-lg font-display font-700 text-sm transition-all ${
-                      zone === z
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary border border-border text-muted-foreground hover:border-primary/40'
-                    }`}
-                  >
-                    {z}
-                  </button>
-                ))}
-              </div>
+          {/* ゾーン選択 */}
+          <div className="mb-4">
+            <label className="text-[10px] text-on-surface-variant block mb-2 tracking-widest uppercase font-600">ゾーン</label>
+            <div className="flex flex-wrap gap-1.5">
+              {ZONE_IDS.map(z => (
+                <button
+                  key={z}
+                  onClick={() => setZone(z)}
+                  className={`min-w-10 h-10 px-3 rounded-xl font-display font-700 text-sm transition-all duration-200 ${
+                    zone === z
+                      ? 'bg-on-surface text-surface scale-105 shadow-[0_4px_12px_rgba(46,51,54,0.15)]'
+                      : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest active:scale-90'
+                  }`}
+                >
+                  {z}
+                </button>
+              ))}
             </div>
+          </div>
 
-            {/* 番号入力 */}
-            <div className="flex-1">
-              <label className="text-[10px] text-muted-foreground block mb-1">番号 (01〜99)</label>
+          {/* 番号入力 + 投票ボタン */}
+          <div className="flex gap-3 items-end">
+            <div>
+              <label className="text-[10px] text-on-surface-variant block mb-1 tracking-widest uppercase font-600">番号 (01〜99)</label>
               <input
                 type="number"
                 placeholder="01"
@@ -151,15 +144,13 @@ export default function VotePage() {
                 }}
                 min={1}
                 max={99}
-                className="w-full bg-secondary border border-border rounded-button px-4 py-2 text-center font-display font-700 text-xl text-foreground placeholder:text-muted-foreground/30 outline-none focus:border-primary transition-colors tabular-nums"
+                className="w-20 h-12 bg-surface-container-highest rounded-xl px-3 text-center font-display font-700 text-xl text-on-surface placeholder:text-on-surface-variant/30 outline-none focus:ring-2 focus:ring-primary/30 transition-all tabular-nums"
               />
             </div>
-
-            {/* 投票ボタン */}
             <button
               onClick={handleVote}
               disabled={submitting || !number}
-              className="btn-primary h-10 px-5 shrink-0 disabled:opacity-50"
+              className="btn-primary h-12 px-6 disabled:opacity-50 text-sm"
             >
               {submitting ? '...' : '投票'}
             </button>
@@ -167,31 +158,32 @@ export default function VotePage() {
 
           {/* プレビュー */}
           {number && (
-            <p className="text-center mt-3 font-display font-700 text-2xl text-foreground">
+            <p className="text-center mt-3 font-display font-800 text-2xl text-on-surface animate-scaleIn">
               {zone}{number.padStart(2, '0')}
             </p>
           )}
 
           {message && (
-            <p className={`text-xs mt-2 ${message.includes('失敗') || message.includes('間を') ? 'text-destructive' : 'text-primary'}`}>
+            <p className={`text-xs mt-2 animate-slideInRight ${message.includes('失敗') || message.includes('間を') ? 'text-error' : 'text-secondary'}`}>
+              {message.includes('投票しました') && <span className="inline-block vote-success mr-1">✓</span>}
               {message}
             </p>
           )}
         </div>
       ) : (
-        <div className="card-base text-center py-6">
-          <span className="i-ph-flag-checkered-duotone text-4xl text-muted-foreground/30 block mb-2" />
-          <p className="font-700 text-foreground">投票は締め切りました</p>
-          <p className="text-xs text-muted-foreground mt-1">13:30をもって終了しました</p>
+        <div className="card-elevated text-center py-6">
+          <span className="i-ph-flag-checkered-duotone text-4xl text-on-surface-variant/20 block mb-2" />
+          <p className="font-display font-700 text-on-surface">投票は締め切りました</p>
+          <p className="text-xs text-on-surface-variant mt-1">13:30をもって終了しました</p>
         </div>
       )}
 
       {/* 自分の投票 */}
       {myVotes.length > 0 && (
         <div className="flex flex-wrap gap-1.5 px-1">
-          <span className="text-[10px] text-muted-foreground mr-1 self-center">あなたの投票:</span>
+          <span className="text-[10px] text-on-surface-variant mr-1 self-center tracking-widest uppercase font-600">あなたの投票:</span>
           {myVotes.map((v, i) => (
-            <span key={i} className="text-xs font-display font-700 bg-primary/10 text-primary px-2 py-0.5 rounded-md">
+            <span key={i} className="text-xs font-display font-700 bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-lg animate-popIn" style={{ animationDelay: `${i * 0.05}s` }}>
               {v}
             </span>
           ))}
@@ -201,16 +193,18 @@ export default function VotePage() {
       {/* ランキング */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display font-700 text-sm text-muted-foreground tracking-wider uppercase flex items-center gap-2">
-            <span className="i-ph-trophy-duotone text-primary text-lg" />
+          <h2 className="font-display font-700 text-sm text-on-surface tracking-tight flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full flex-center bg-secondary-fixed">
+              <span className="i-ph-trophy-duotone text-on-secondary-fixed text-sm" />
+            </div>
             ランキング
           </h2>
           {/* ゾーンフィルター */}
           <div className="flex gap-1">
             <button
               onClick={() => setFilterZone(null)}
-              className={`px-2 py-0.5 rounded-md text-[10px] font-600 transition-colors ${
-                !filterZone ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-700 tracking-wider uppercase transition-colors ${
+                !filterZone ? 'bg-on-surface text-surface' : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
               ALL
@@ -219,8 +213,8 @@ export default function VotePage() {
               <button
                 key={z}
                 onClick={() => setFilterZone(z)}
-                className={`px-2 py-0.5 rounded-md text-[10px] font-600 transition-colors ${
-                  filterZone === z ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-700 transition-colors ${
+                  filterZone === z ? 'bg-on-surface text-surface' : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
                 {z}
@@ -231,44 +225,46 @@ export default function VotePage() {
 
         {filteredRanking.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm text-muted-foreground">まだ投票がありません</p>
+            <p className="text-sm text-on-surface-variant">まだ投票がありません</p>
           </div>
         ) : (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {filteredRanking.slice(0, 30).map((entry, i) => {
               const zoneData = zones.find(z => entry.car_number.startsWith(z.id));
               const isTop3 = i < 3;
               return (
                 <div
                   key={entry.car_number}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                    isTop3 ? 'bg-primary/5 border border-primary/20' : 'bg-card border border-border'
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all card-press ${
+                    isTop3
+                      ? 'bg-surface-container-lowest shadow-[0_20px_40px_rgba(46,51,54,0.04)]'
+                      : 'bg-surface-container-low'
                   }`}
+                  style={{ animation: `fadeInUp 0.4s ${i * 0.04}s both cubic-bezier(0.16,1,0.3,1)` }}
                 >
-                  {/* 順位 */}
-                  <span className={`font-display font-700 text-sm w-6 text-center ${
-                    i === 0 ? 'text-amber-400' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-amber-700' : 'text-muted-foreground'
+                  <span className={`font-display font-800 text-sm w-6 text-center ${
+                    i === 0 ? 'text-amber-500' : i === 1 ? 'text-zinc-400' : i === 2 ? 'text-amber-700' : 'text-on-surface-variant'
                   }`}>
                     {i + 1}
                   </span>
-                  {/* ゾーンバッジ */}
                   <span
-                    className="w-6 h-6 rounded text-[10px] font-700 text-white flex-center shrink-0"
+                    className="w-7 h-7 rounded-full text-[10px] font-700 text-white flex-center shrink-0"
                     style={{ backgroundColor: zoneData?.color || '#666' }}
                   >
                     {entry.car_number.charAt(0)}
                   </span>
-                  {/* 車番号 */}
-                  <span className="font-display font-700 text-foreground flex-1">
+                  <span className="font-display font-700 text-on-surface flex-1">
                     {entry.car_number}
                   </span>
-                  {/* 得票数 */}
                   <div className="flex items-center gap-1.5">
                     <div
-                      className="h-2 rounded-full bg-primary/30"
-                      style={{ width: `${Math.min(entry.count / (filteredRanking[0]?.count || 1) * 60, 60)}px` }}
+                      className="h-1.5 rounded-full bg-secondary-fixed-dim bar-grow"
+                      style={{
+                        width: `${Math.min(entry.count / (filteredRanking[0]?.count || 1) * 60, 60)}px`,
+                        animationDelay: `${i * 0.04}s`,
+                      }}
                     />
-                    <span className="font-display font-700 text-sm text-primary tabular-nums w-8 text-right">
+                    <span className="font-display font-700 text-sm text-secondary tabular-nums w-8 text-right">
                       {entry.count}
                     </span>
                   </div>

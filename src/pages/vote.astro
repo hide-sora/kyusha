@@ -4,13 +4,16 @@ import Nav from '../components/common/Nav.astro';
 import VotePage from '../components/Vote/VotePage';
 ---
 <Layout title="車両グランプリ投票">
-  <main class="min-h-screen pb-20 pt-6">
-    <header class="px-5 mb-6">
-      <h1 class="section-title text-foreground">
-        <span class="i-ph-trophy-duotone text-primary mr-2 align-middle" />
+  <main class="min-h-screen pb-28">
+    <header class="px-6 pt-12 pb-8 max-w-lg mx-auto">
+      <p class="label-upper text-tertiary mb-2">People's Choice</p>
+      <h1 class="font-display font-800 text-4xl tracking-tight text-on-surface mb-3">
         車両グランプリ投票
       </h1>
-      <p class="text-xs text-muted-foreground mt-1">投票締切: 13:30</p>
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-tertiary-container text-on-tertiary-container rounded-full text-xs font-600">
+        <span class="i-ph-clock-countdown-duotone text-base" />
+        投票締切 13:30
+      </div>
     </header>
 
     <VotePage client:load />

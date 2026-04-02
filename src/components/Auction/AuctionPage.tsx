@@ -21,7 +21,6 @@ interface Bid {
   created: string;
 }
 
-// 金額フォーマット
 function formatYen(n: number) {
   return `¥${n.toLocaleString()}`;
 }
@@ -36,34 +35,35 @@ function ItemCard({
   onSelect: () => void;
 }) {
   const statusLabel = {
-    upcoming: { text: '開始前', class: 'bg-secondary text-muted-foreground' },
-    live: { text: 'LIVE', class: 'bg-red-500/90 text-white' },
-    ended: { text: '終了', class: 'bg-muted text-muted-foreground' },
+    upcoming: { text: '開始前', class: 'bg-surface-container-highest text-on-surface-variant' },
+    live: { text: 'LIVE', class: 'bg-error text-on-error' },
+    ended: { text: '終了', class: 'bg-surface-container-high text-on-surface-variant' },
   }[item.status];
 
   return (
     <button
       onClick={onSelect}
-      className={`card-base w-full text-left transition-all ${
-        isSelected ? 'border-primary ring-1 ring-primary/30' : 'hover:border-primary/30'
+      className={`w-full text-left rounded-xl p-4 transition-all duration-200 card-press ${
+        isSelected
+          ? 'bg-surface-container-lowest shadow-[0_20px_40px_rgba(46,51,54,0.06)] ring-2 ring-primary/20'
+          : 'bg-surface-container-low hover:bg-surface-container-lowest'
       }`}
     >
       <div className="flex items-start gap-3">
-        {/* 画像プレースホルダー */}
-        <div className="w-16 h-16 rounded-lg bg-secondary flex-center shrink-0 overflow-hidden">
-          <span className="i-ph-gavel-duotone text-2xl text-muted-foreground/30" />
+        <div className="w-14 h-14 rounded-xl bg-surface-container-high flex-center shrink-0 overflow-hidden">
+          <span className="i-ph-gavel-duotone text-2xl text-on-surface-variant/20" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className={`text-[10px] font-700 px-1.5 py-0.5 rounded-md ${statusLabel.class}`}>
+            <span className={`text-[10px] font-700 px-2 py-0.5 rounded-lg ${statusLabel.class}`}>
               {statusLabel.text}
             </span>
-            <span className="text-[11px] text-muted-foreground truncate">
+            <span className="text-[11px] text-on-surface-variant truncate">
               {item.youtuber_name}
             </span>
           </div>
-          <h3 className="font-700 text-sm text-foreground truncate">{item.title}</h3>
-          <p className="font-display font-700 text-primary text-lg mt-1">
+          <h3 className="font-display font-700 text-sm text-on-surface truncate">{item.title}</h3>
+          <p className="font-display font-800 text-primary text-lg mt-1">
             {formatYen(item.current_price || item.start_price)}
           </p>
         </div>
@@ -81,9 +81,7 @@ function BidPanel({ item }: { item: AuctionItem }) {
 
   const pb = getPb();
 
-  // リアルタイム入札情報取得
   useEffect(() => {
-    // 既存の入札を取得
     pb.collection('auction_bids')
       .getList(1, 20, {
         filter: `item = "${item.id}"`,
@@ -92,7 +90,6 @@ function BidPanel({ item }: { item: AuctionItem }) {
       .then(res => setBids(res.items as unknown as Bid[]))
       .catch(() => {});
 
-    // リアルタイム購読
     const unsub = pb.collection('auction_bids').subscribe('*', (e) => {
       if (e.action === 'create') {
         const bid = e.record as unknown as Bid;
@@ -136,9 +133,9 @@ function BidPanel({ item }: { item: AuctionItem }) {
   return (
     <div className="mt-4 space-y-4">
       {/* 現在の最高額 */}
-      <div className="text-center py-4 bg-primary/5 rounded-card border border-primary/20">
-        <p className="text-xs text-muted-foreground mb-1">現在の最高額</p>
-        <p className="font-display font-900 text-3xl text-primary">
+      <div className="text-center py-5 bg-surface-container-lowest rounded-xl shadow-[0_20px_40px_rgba(46,51,54,0.06)]">
+        <p className="text-[10px] tracking-widest font-700 uppercase text-on-surface-variant mb-1">現在の最高額</p>
+        <p className="font-display font-800 text-3xl text-on-surface">
           {formatYen(item.current_price || item.start_price)}
         </p>
       </div>
@@ -151,7 +148,7 @@ function BidPanel({ item }: { item: AuctionItem }) {
             placeholder="ニックネーム"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            className="w-full bg-secondary border border-border rounded-button px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary transition-colors"
+            className="w-full bg-surface-container-highest rounded-xl px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
             maxLength={20}
           />
           <div className="flex gap-2">
@@ -160,14 +157,14 @@ function BidPanel({ item }: { item: AuctionItem }) {
               placeholder={`${formatYen(minBid)}〜`}
               value={bidAmount}
               onChange={(e) => setBidAmount(e.target.value)}
-              className="flex-1 bg-secondary border border-border rounded-button px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary transition-colors tabular-nums"
+              className="flex-1 bg-surface-container-highest rounded-xl px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none focus:ring-2 focus:ring-primary/30 transition-all tabular-nums"
               min={minBid}
               step={100}
             />
             <button
               onClick={handleBid}
               disabled={submitting}
-              className="btn-primary px-5 shrink-0 disabled:opacity-50"
+              className="btn-primary px-5 shrink-0 disabled:opacity-50 text-sm"
             >
               {submitting ? '...' : '入札'}
             </button>
@@ -178,33 +175,33 @@ function BidPanel({ item }: { item: AuctionItem }) {
               <button
                 key={inc}
                 onClick={() => setBidAmount(String((item.current_price || item.start_price) + inc))}
-                className="px-3 py-1.5 bg-secondary border border-border rounded-button text-xs font-600 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+                className="px-3 py-1.5 bg-surface-container-high rounded-xl text-xs font-600 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200 active:scale-90"
               >
                 +{formatYen(inc)}
               </button>
             ))}
           </div>
-          {error && <p className="text-xs text-destructive">{error}</p>}
+          {error && <p className="text-xs text-error">{error}</p>}
         </div>
       )}
 
       {item.status === 'upcoming' && (
         <div className="text-center py-6">
-          <span className="i-ph-clock-countdown-duotone text-4xl text-muted-foreground/30 block mb-2" />
-          <p className="text-sm text-muted-foreground">オークション開始までお待ちください</p>
+          <span className="i-ph-clock-countdown-duotone text-4xl text-on-surface-variant/20 block mb-2" />
+          <p className="text-sm text-on-surface-variant">オークション開始までお待ちください</p>
         </div>
       )}
 
       {/* 入札履歴 */}
       {bids.length > 0 && (
         <div>
-          <h4 className="text-xs font-600 text-muted-foreground uppercase tracking-wider mb-2">入札履歴</h4>
-          <div className="space-y-1">
+          <h4 className="text-[10px] font-700 text-on-surface-variant uppercase tracking-widest mb-2">入札履歴</h4>
+          <div className="space-y-1.5">
             {bids.slice(0, 10).map((bid, i) => (
               <div
                 key={bid.id}
-                className={`flex justify-between items-center px-3 py-2 rounded-lg text-sm ${
-                  i === 0 ? 'bg-primary/10 text-primary' : 'text-muted-foreground'
+                className={`flex justify-between items-center px-4 py-2.5 rounded-xl text-sm ${
+                  i === 0 ? 'bg-surface-container-lowest shadow-[0_10px_20px_rgba(46,51,54,0.04)] text-on-surface' : 'bg-surface-container-low text-on-surface-variant'
                 }`}
               >
                 <span className="font-500">{bid.bidder_name}</span>
@@ -236,7 +233,6 @@ export default function AuctionPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
 
-    // リアルタイムで status / current_price を更新
     const unsub = pb.collection('auction_items').subscribe('*', (e) => {
       if (e.action === 'update') {
         setItems(prev => prev.map(item =>
@@ -253,28 +249,29 @@ export default function AuctionPage() {
   if (loading) {
     return (
       <div className="flex-center py-20">
-        <span className="i-ph-spinner-bold text-2xl text-muted-foreground animate-spin" />
+        <span className="i-ph-spinner-bold text-2xl text-on-surface-variant animate-spin" />
       </div>
     );
   }
 
   if (items.length === 0) {
     return (
-      <div className="px-4 max-w-lg mx-auto">
-        {/* オークション告知（出品未登録時） */}
-        <div className="card-base text-center py-10 bg-gradient-to-br from-amber-600/10 to-orange-600/10">
-          <span className="i-ph-gavel-duotone text-6xl text-primary block mb-4" />
-          <h2 className="font-display font-700 text-xl text-foreground mb-2">
+      <div className="px-5 max-w-lg mx-auto">
+        <div className="card-elevated text-center py-10">
+          <div className="w-16 h-16 mx-auto rounded-full bg-tertiary-fixed flex-center mb-5">
+            <span className="i-ph-gavel-duotone text-3xl text-on-tertiary-fixed" />
+          </div>
+          <h2 className="font-display font-800 text-xl text-on-surface mb-2">
             チャリティーオークション
           </h2>
-          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+          <p className="text-sm text-on-surface-variant mb-5 leading-relaxed">
             各YouTuberが用意したとっておきの出品物を<br />
             専用アプリでオークション!<br />
-            参加は会場者全員可能です。
+            参加は来場者全員可能です。
           </p>
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-pill px-4 py-2">
-            <span className="i-ph-clock-countdown-duotone text-primary text-lg" />
-            <span className="font-display font-700 text-primary text-lg">13:00 START</span>
+          <div className="inline-flex items-center gap-2 bg-on-surface text-surface rounded-xl px-5 py-3 font-display font-700">
+            <span className="i-ph-clock-countdown-duotone text-lg" />
+            13:00 START
           </div>
         </div>
       </div>
@@ -282,13 +279,14 @@ export default function AuctionPage() {
   }
 
   return (
-    <div className="px-4 max-w-lg mx-auto space-y-3">
+    <div className="px-5 max-w-lg mx-auto space-y-3">
       {/* ヘッダー告知 */}
-      <div className="bg-primary/10 border border-primary/30 rounded-card px-4 py-3 flex items-center gap-3">
-        <span className="i-ph-megaphone-duotone text-2xl text-primary shrink-0" />
-        <div>
-          <p className="font-700 text-sm text-primary">チャリティーオークション開催中!</p>
-          <p className="text-xs text-muted-foreground">各YouTuberの出品物に入札しよう</p>
+      <div className="bg-primary text-on-primary rounded-xl px-5 py-4 flex items-center gap-3 relative overflow-hidden">
+        <div className="absolute right-0 top-0 h-full w-32 bg-white/5 skew-x-[-20deg] translate-x-12" />
+        <span className="i-ph-megaphone-duotone text-2xl shrink-0 relative z-10" />
+        <div className="relative z-10">
+          <p className="font-display font-700 text-sm">チャリティーオークション開催中!</p>
+          <p className="text-xs opacity-80">各YouTuberの出品物に入札しよう</p>
         </div>
       </div>
 

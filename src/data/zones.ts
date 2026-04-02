@@ -42,4 +42,11 @@ export const zones: Zone[] = [
     carCount: 14,
     color: '#f4a261',
   },
+  {
+    id: '茨',
+    name: '茨ゾーン',
+    description: '茨城県ゆかりの車両',
+    carCount: 0,
+    color: '#7c3aed',
+  },
 ];

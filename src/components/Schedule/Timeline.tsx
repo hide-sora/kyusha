@@ -6,58 +6,113 @@ function getNowMinutes(): number {
   return now.getHours() * 60 + now.getMinutes();
 }
 
-function EventCard({ event, isActive, isPast }: {
-  event: ScheduleEvent;
-  isActive: boolean;
-  isPast: boolean;
-}) {
-  return (
-    <div className={`relative flex gap-4 ${isPast ? 'opacity-40' : ''}`}>
-      {/* タイムライン線 + ドット */}
-      <div className="flex flex-col items-center shrink-0 w-12">
-        <span className="font-display font-600 text-xs text-muted-foreground tabular-nums">
-          {event.time}
-        </span>
-        <div className={`w-3 h-3 rounded-full mt-2 border-2 shrink-0 ${
-          isActive
-            ? 'bg-primary border-primary shadow-[0_0_10px_hsl(42,85%,55%)]'
-            : isPast
-              ? 'bg-muted-foreground/30 border-muted-foreground/30'
-              : 'bg-secondary border-border'
-        }`} />
-        <div className="w-px flex-1 bg-border mt-1" />
-      </div>
+type Status = 'completed' | 'active' | 'upcoming';
 
-      {/* コンテンツ */}
-      <div className={`flex-1 pb-6 pt-0.5 ${isActive ? '' : ''}`}>
-        <div className={`rounded-card p-4 transition-all ${
-          isActive
-            ? 'bg-primary/10 border border-primary/30'
-            : 'bg-card border border-border'
-        }`}>
-          {isActive && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-display font-700 text-primary uppercase tracking-wider mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              NOW
+function getStatus(event: ScheduleEvent, nowMinutes: number): Status {
+  if (nowMinutes >= event.endMinutes) return 'completed';
+  if (nowMinutes >= event.startMinutes && nowMinutes < event.endMinutes) return 'active';
+  return 'upcoming';
+}
+
+function StatusDot({ status }: { status: Status }) {
+  if (status === 'completed') {
+    return (
+      <div className="w-7 h-7 rounded-full bg-on-surface text-surface flex-center shrink-0 z-10">
+        <span className="i-ph-check-bold text-xs" />
+      </div>
+    );
+  }
+  if (status === 'active') {
+    return (
+      <div className="w-7 h-7 rounded-full border-2 border-on-surface bg-surface flex-center shrink-0 z-10 relative">
+        <div className="w-2.5 h-2.5 rounded-full bg-on-surface animate-pulse" />
+      </div>
+    );
+  }
+  return (
+    <div className="w-7 h-7 rounded-full border-2 border-outline-variant bg-surface flex-center shrink-0 z-10">
+      <div className="w-2 h-2 rounded-full bg-outline-variant" />
+    </div>
+  );
+}
+
+function EventCard({ event, status }: { event: ScheduleEvent; status: Status }) {
+  return (
+    <div
+      className={`flex-1 min-w-0 rounded-xl p-4 transition-all duration-200 ${
+        status === 'active'
+          ? 'bg-surface-container-lowest shadow-[0_20px_40px_rgba(46,51,54,0.08)]'
+          : status === 'completed'
+            ? 'bg-transparent'
+            : 'bg-surface-container-low'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          {/* Time + Status Badge */}
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span className={`text-xs font-700 ${
+              status === 'active' ? 'text-secondary' : 'text-on-surface-variant'
+            }`}>
+              {event.time}
             </span>
-          )}
-          <h3 className={`font-700 text-sm leading-snug ${
-            event.highlight ? 'text-primary' : 'text-foreground'
+            {status === 'active' && (
+              <span className="inline-flex items-center bg-on-surface text-surface px-2 py-0.5 rounded text-[9px] font-700 tracking-widest uppercase leading-none">
+                Now
+              </span>
+            )}
+            {status === 'completed' && (
+              <span className="text-[9px] font-600 text-on-surface-variant/50 uppercase tracking-wider">
+                終了
+              </span>
+            )}
+          </div>
+
+          {/* Title */}
+          <h3 className={`font-display font-700 leading-snug ${
+            status === 'active'
+              ? 'text-base font-800 text-on-surface'
+              : status === 'completed'
+                ? 'text-sm text-on-surface-variant'
+                : 'text-sm text-on-surface'
           }`}>
             {event.title}
           </h3>
+
+          {/* Description */}
           {event.description && (
-            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+            <p className={`text-xs leading-relaxed mt-1 ${
+              status === 'completed' ? 'text-on-surface-variant/50' : 'text-on-surface-variant'
+            }`}>
               {event.description}
             </p>
           )}
-          {event.location && (
-            <p className="text-[11px] text-muted-foreground/70 mt-1 flex items-center gap-1">
-              <span className="i-ph-map-pin-duotone text-sm" />
-              {event.location}
-            </p>
+
+          {/* Location badge */}
+          {event.location && status !== 'completed' && (
+            <div className="mt-2">
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-700 uppercase tracking-wider ${
+                status === 'active'
+                  ? 'bg-tertiary-container text-on-tertiary-container'
+                  : 'bg-surface-container text-on-surface-variant'
+              }`}>
+                <span className="i-ph-map-pin-duotone text-[10px]" />
+                {event.location}
+              </span>
+            </div>
           )}
         </div>
+
+        {/* Right icon for highlight events */}
+        {event.highlight && status !== 'completed' && (
+          <div className={`p-2.5 rounded-xl shrink-0 ${
+            status === 'active'
+              ? 'bg-on-surface text-surface'
+              : 'bg-secondary-fixed text-on-secondary-fixed'
+          }`}>
+            <span className="i-ph-star-duotone text-base" />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -72,11 +127,39 @@ export default function Timeline() {
   }, []);
 
   return (
-    <div className="px-4 max-w-lg mx-auto">
+    <div className="px-5 max-w-lg mx-auto">
       {scheduleEvents.map((event, i) => {
-        const isActive = nowMinutes >= event.startMinutes && nowMinutes < event.endMinutes;
-        const isPast = nowMinutes >= event.endMinutes;
-        return <EventCard key={i} event={event} isActive={isActive} isPast={isPast} />;
+        const status = getStatus(event, nowMinutes);
+        const isLast = i === scheduleEvents.length - 1;
+
+        return (
+          <div key={i} className="relative flex gap-3">
+            {/* Connector line */}
+            {!isLast && (
+              <div
+                className="absolute left-3.5 top-9 bottom-0 w-px"
+                style={{
+                  background: status === 'completed'
+                    ? 'var(--un-color-on-surface, #2e3336)'
+                    : status === 'active'
+                      ? 'linear-gradient(to bottom, var(--un-color-on-surface, #2e3336) 0%, var(--un-color-outline-variant, #aeb2b6) 100%)'
+                      : 'var(--un-color-outline-variant, #aeb2b6)',
+                  opacity: status === 'completed' ? 0.3 : status === 'active' ? 0.5 : 0.3,
+                }}
+              />
+            )}
+
+            {/* Dot column */}
+            <div className="flex flex-col items-center pt-4">
+              <StatusDot status={status} />
+            </div>
+
+            {/* Event content */}
+            <div className={`flex-1 min-w-0 pb-3 ${status === 'completed' ? 'opacity-50' : ''}`}>
+              <EventCard event={event} status={status} />
+            </div>
+          </div>
+        );
       })}
     </div>
   );
