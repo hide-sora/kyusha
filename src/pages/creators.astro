@@ -88,39 +88,47 @@ import { creators, sponsors } from '../data/creators';
         </h2>
 
         <div class="space-y-3 reveal-stagger">
-          {sponsors.map((s, i) => (
-            <div
-              class="bg-surface-container-low rounded-xl p-4 hover:bg-surface-container-lowest transition-all duration-200 card-press reveal"
-            >
-              <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-xl shrink-0 overflow-hidden bg-surface-container-highest flex-center">
-                  {s.image ? (
-                    <img src={s.image} alt={s.name} class="w-full h-full object-contain p-1" loading="lazy" />
-                  ) : (
-                    <span class:list={[s.icon, 'text-xl text-on-surface-variant']} />
-                  )}
-                </div>
-                <div class="flex-1 min-w-0">
-                  <h3 class="font-display font-700 text-on-surface text-sm mb-0.5">{s.name}</h3>
-                  <p class="text-xs text-on-surface-variant leading-relaxed line-clamp-2">{s.description}</p>
-                  <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                    {s.booth && (
-                      <span class="px-2 py-0.5 bg-tertiary-container text-on-tertiary-container rounded-md text-[9px] font-700 uppercase tracking-wider inline-flex items-center gap-1 leading-none">
-                        <span class="i-ph-map-pin-duotone text-[9px]" />
-                        {s.booth}
-                      </span>
-                    )}
-                    {s.subscribers && (
-                      <span class="text-[10px] text-secondary font-600 inline-flex items-center gap-1">
-                        <span class="i-ph-youtube-logo-duotone text-xs" />
-                        {s.subscribers}
-                      </span>
+          {sponsors.map((s) => {
+            const Tag = s.url ? 'a' : 'div';
+            const linkProps = s.url ? { href: s.url, target: '_blank', rel: 'noopener noreferrer' } : {};
+            return (
+              <Tag
+                {...linkProps}
+                class="block bg-surface-container-low rounded-xl p-4 hover:bg-surface-container-lowest transition-all duration-200 card-press reveal"
+              >
+                <div class="flex items-center gap-4">
+                  <div class="w-14 h-14 rounded-xl shrink-0 overflow-hidden bg-surface-container-highest flex-center">
+                    {s.image ? (
+                      <img src={s.image} alt={s.name} class="w-full h-full object-contain p-1" loading="lazy" />
+                    ) : (
+                      <span class:list={[s.icon, 'text-xl text-on-surface-variant']} />
                     )}
                   </div>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="font-display font-700 text-on-surface text-sm mb-0.5">{s.name}</h3>
+                    <p class="text-xs text-on-surface-variant leading-relaxed line-clamp-2">{s.description}</p>
+                    <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                      {s.booth && (
+                        <span class="px-2 py-0.5 bg-tertiary-container text-on-tertiary-container rounded-md text-[9px] font-700 uppercase tracking-wider inline-flex items-center gap-1 leading-none">
+                          <span class="i-ph-map-pin-duotone text-[9px]" />
+                          {s.booth}
+                        </span>
+                      )}
+                      {s.subscribers && (
+                        <span class="text-[10px] text-secondary font-600 inline-flex items-center gap-1">
+                          <span class="i-ph-youtube-logo-duotone text-xs" />
+                          {s.subscribers}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {s.url && (
+                    <span class="i-ph-arrow-square-out text-on-surface-variant/20 text-base shrink-0" />
+                  )}
                 </div>
-              </div>
-            </div>
-          ))}
+              </Tag>
+            );
+          })}
         </div>
       </section>
 
