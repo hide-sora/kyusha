@@ -50,11 +50,11 @@ export const creators: Creator[] = [
   },
   {
     name: '水島 翔',
-    channel: '',
-    description: '車系YouTuberとして幅広いジャンルの車を紹介。',
-    subscribers: '',
+    channel: '@ryoushitrader',
+    description: '漁師トレーダー翔として活動。車・トレード・ライフスタイルを発信。',
+    subscribers: '18.8万人',
     icon: 'i-ph-video-camera-duotone',
-    url: '',
+    url: 'https://www.youtube.com/@ryoushitrader',
     image: '/creators/mizushima.svg',
   },
   {
