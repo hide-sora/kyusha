@@ -2,66 +2,240 @@
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/common/Nav.astro';
 import Countdown from '../components/Countdown';
-import NowPlaying from '../components/NowPlaying';
+import { creators, sponsors } from '../data/creators';
+import { zones } from '../data/zones';
+
+const totalCars = zones.reduce((sum, z) => sum + z.carCount, 0);
+const activeZones = zones.filter(z => z.carCount > 0);
+
+const galleryPhotos = [
+  'S__14049354.jpg', 'S__14049356_0.jpg', 'S__14049357_0.jpg',
+  'S__14049358_0.jpg', 'S__14049359_0.jpg', 'S__14049360_0.jpg',
+  'S__14049361_0.jpg', 'S__14049362_0.jpg', 'S__14049363_0.jpg',
+  'S__14049364_0.jpg', 'S__14049365_0.jpg',
+];
 ---
 <Layout>
-  <main class="min-h-screen pb-28">
+  <main class="min-h-screen pb-nav-safe">
 
-    {/* コンパクトヘッダー */}
-    <header class="px-6 pt-12 pb-2 max-w-lg mx-auto">
-      <p class="label-upper text-on-surface-variant mb-1">2026.04.26 SUN — もてぎ南コース</p>
-      <h1 class="font-display font-900 text-3xl tracking-tighter text-on-surface leading-none">
-        YouTuber<br/>旧車サミット
-      </h1>
-    </header>
-
-    {/* カウントダウン + NowPlaying */}
-    <section class="px-5 mt-4">
-      <div class="grid grid-cols-1 gap-3 max-w-lg mx-auto">
-        <div class="card-elevated p-5">
-          <p class="label-upper text-on-surface-variant mb-4">開催まで</p>
-          <Countdown client:load />
+    {/* ヒーロー（フルスクリーン） */}
+    <section class="relative max-w-lg mx-auto rounded-3xl overflow-hidden" style="height: calc(100svh - var(--nav-h))">
+      <img
+        src="/hero.jpg"
+        alt="旧車サミット2026 ヒーロー"
+        class="absolute inset-0 w-full h-full object-cover" style="object-position: center 80%"
+      />
+      <div class="absolute inset-0 bg-gradient-to-b from-black/25 from-0% to-transparent to-45%" />
+      {/* 全体をflexで縦配置し、下に寄せる */}
+      <div class="relative h-full flex flex-col justify-between px-5 pt-8 pb-5">
+        {/* タイトル */}
+        <div class="hero-text text-center">
+          <h1 class="font-display font-800 text-[2.2rem] tracking-tighter leading-[0.9] text-white">
+            YouTuber<br/>旧車サミット<span class="font-900 text-[3rem] tracking-[-0.04em] ml-1">2026</span>
+          </h1>
         </div>
-        <NowPlaying client:load />
+        {/* 日時 + カウントダウン */}
+        <div class="hero-text">
+          <div class="mb-2">
+            <p class="font-display font-800 text-2xl text-white leading-none tracking-tight">4/26<span class="font-600 text-white/70 text-lg ml-1">（日）</span></p>
+            <div class="flex items-center gap-3 mt-1.5">
+              <span class="text-xs text-white/80 font-600">入場 <span class="font-800 text-white text-base">8:00</span>〜</span>
+              <span class="text-white/30">|</span>
+              <span class="text-xs text-white/80 font-600">イベント <span class="font-800 text-white text-base">9:00</span>〜<span class="font-800 text-white text-base">15:00</span></span>
+            </div>
+            <p class="text-[10px] text-white/50 mt-1">モビリティリゾートもてぎ 南コース</p>
+          </div>
+          <div class="glass rounded-2xl px-5 py-4 shadow-none no-text-shadow">
+            <Countdown client:load />
+          </div>
+          <a href="/ticket" class="block mt-3 text-center bg-white/95 text-on-surface font-display font-800 text-base px-6 py-4 rounded-2xl active:scale-95 transition-transform duration-150 no-text-shadow">
+            <span class="i-ph-ticket-duotone text-lg mr-1.5 align-middle" />チケット購入はこちら
+          </a>
+        </div>
       </div>
     </section>
 
-    {/* メイン CTA: オークション & 投票 */}
-    <section class="px-5 mt-6">
-      <div class="grid grid-cols-1 gap-3 max-w-lg mx-auto reveal-stagger">
-
-        {/* オークション */}
-        <a href="/auction" class="block bg-on-surface text-surface rounded-2xl p-5 relative overflow-hidden card-press reveal">
-          <div class="absolute right-0 top-0 h-full w-40 bg-white/5 skew-x-[-20deg] translate-x-16" />
-          <div class="relative z-10 flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl flex-center bg-white/10 shrink-0">
-              <span class="i-ph-gavel-duotone text-3xl" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-[10px] tracking-widest font-700 uppercase opacity-50 mb-1">13:00 START</p>
-              <h2 class="font-display font-800 text-lg tracking-tight leading-snug">チャリティー<br/>オークション</h2>
-              <p class="text-xs opacity-60 mt-1.5">YouTuberの出品物にアプリで入札!</p>
-            </div>
-            <span class="i-ph-caret-right-bold text-xl opacity-30 shrink-0" />
+    {/* 出演YouTuber */}
+    <section class="mt-8 px-5">
+      <div class="max-w-lg mx-auto">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="i-ph-youtube-logo-duotone text-2xl text-error" />
+          <h2 class="font-display font-800 text-xl text-on-surface tracking-tight">参加するYouTuber</h2>
+        </div>
+          <div class="grid grid-cols-3 gap-3 reveal-stagger">
+            {creators.map((c, i) => (
+              <div class="flex flex-col items-center gap-2 card-base p-3 rounded-2xl card-press reveal text-center cursor-pointer" data-profile data-name={c.name} data-desc={c.description} data-img={c.image || ''} data-subs={c.subscribers || ''} data-url={c.url || ''} data-channel={c.channel || ''}>
+                <div class="relative">
+                  <div class:list={['w-18 h-18 rounded-full overflow-hidden bg-surface-container-highest shrink-0', i === 0 && 'ring-2 ring-amber-400 ring-offset-2 ring-offset-surface-container-lowest']}>
+                    {c.image ? (
+                      <img src={c.image} alt={c.name} class="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div class="w-full h-full flex-center">
+                        <span class:list={[c.icon, 'text-2xl text-on-surface-variant']} />
+                      </div>
+                    )}
+                  </div>
+                  {i === 0 && (
+                    <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-700 px-1.5 py-0.5 rounded-md bg-primary text-on-primary leading-none whitespace-nowrap">主催</span>
+                  )}
+                </div>
+                <div class="min-w-0 w-full">
+                  <p class="font-display font-700 text-xs text-on-surface leading-tight truncate">{c.name}</p>
+                  {c.subscribers && <p class="text-[10px] text-on-surface-variant mt-0.5">{c.subscribers}</p>}
+                </div>
+              </div>
+            ))}
           </div>
-        </a>
+      </div>
+    </section>
 
-        {/* 車両グランプリ投票 */}
-        <a href="/vote" class="block bg-tertiary text-on-tertiary rounded-2xl p-5 relative overflow-hidden card-press reveal">
-          <div class="absolute right-0 top-0 h-full w-40 bg-white/5 skew-x-[-20deg] translate-x-16" />
-          <div class="relative z-10 flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl flex-center bg-white/10 shrink-0">
-              <span class="i-ph-trophy-duotone text-3xl" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-[10px] tracking-widest font-700 uppercase opacity-50 mb-1">〜13:30 締切</p>
-              <h2 class="font-display font-800 text-lg tracking-tight leading-snug">車両グランプリ<br/>投票</h2>
-              <p class="text-xs opacity-60 mt-1.5">お気に入りの一台に投票しよう!</p>
-            </div>
-            <span class="i-ph-caret-right-bold text-xl opacity-30 shrink-0" />
+    {/* 協賛企業 */}
+    <section class="mt-8 px-5">
+      <div class="max-w-lg mx-auto">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="i-ph-flag-banner-duotone text-2xl text-tertiary" />
+          <h2 class="font-display font-800 text-xl text-on-surface tracking-tight">協賛企業</h2>
+        </div>
+          <div class="grid grid-cols-3 gap-3 reveal-stagger">
+            {sponsors.map((s, i) => (
+              <div class="flex flex-col items-center gap-2 card-base p-3 rounded-2xl card-press reveal text-center cursor-pointer" data-profile data-name={s.name} data-desc={s.description} data-img={s.image || ''} data-subs={s.subscribers || ''} data-url={s.url || ''} data-channel={s.booth || ''}>
+                <div class="w-18 h-18 rounded-xl overflow-hidden bg-surface-container-highest shrink-0">
+                  {s.image ? (
+                    <img src={s.image} alt={s.name} class="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div class="w-full h-full flex-center">
+                      <span class:list={[s.icon, 'text-2xl text-on-surface-variant']} />
+                    </div>
+                  )}
+                </div>
+                <div class="min-w-0 w-full">
+                  <p class="font-display font-700 text-xs text-on-surface leading-tight truncate">{s.name}</p>
+                  {s.booth && <p class="text-[10px] text-on-surface-variant mt-0.5 truncate">{s.booth}</p>}
+                </div>
+              </div>
+            ))}
           </div>
-        </a>
+      </div>
+    </section>
 
+    {/* 🔥 イベントの見どころ！ */}
+    <section class="mt-8 px-5">
+      <div class="max-w-lg mx-auto">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="i-ph-fire-duotone text-2xl text-error" />
+          <h2 class="font-display font-800 text-xl tracking-tight text-on-surface">イベントの見どころ！</h2>
+        </div>
+        <div class="grid grid-cols-1 gap-4 reveal-stagger">
+
+          {/* チャリティーオークション */}
+          <a href="/auction" class="block bg-on-surface text-surface rounded-2xl p-6 relative overflow-hidden card-press reveal">
+            <div class="absolute right-[-20px] top-[-20px] w-36 h-36 rounded-full bg-white/5" />
+            <div class="absolute right-10 bottom-[-10px] w-20 h-20 rounded-full bg-white/3" />
+            <div class="relative z-10">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 rounded-2xl flex-center bg-white/10 shrink-0">
+                  <span class="i-ph-gavel-duotone text-2xl" />
+                </div>
+                <span class="text-[11px] tracking-widest font-700 uppercase px-3 py-1 rounded-full bg-white/15">13:00 START</span>
+              </div>
+              <h3 class="font-display font-800 text-2xl tracking-tight leading-tight mb-2">チャリティー<br/>オークション</h3>
+              <p class="text-sm opacity-70">YouTuberの私物が出品！スマホからその場で入札できます</p>
+              <div class="flex items-center gap-1.5 mt-4 opacity-50">
+                <span class="text-xs font-600">詳しく見る</span>
+                <span class="i-ph-arrow-right-bold text-sm" />
+              </div>
+            </div>
+          </a>
+
+          {/* 車両グランプリ投票 */}
+          <a href="/vote" class="block bg-tertiary text-on-tertiary rounded-2xl p-6 relative overflow-hidden card-press reveal">
+            <div class="absolute right-[-20px] top-[-20px] w-36 h-36 rounded-full bg-white/5" />
+            <div class="absolute right-10 bottom-[-10px] w-20 h-20 rounded-full bg-white/3" />
+            <div class="relative z-10">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 rounded-2xl flex-center bg-white/10 shrink-0">
+                  <span class="i-ph-trophy-duotone text-2xl" />
+                </div>
+                <span class="text-[11px] tracking-widest font-700 uppercase px-3 py-1 rounded-full bg-white/15">〜13:30 締切</span>
+              </div>
+              <h3 class="font-display font-800 text-2xl tracking-tight leading-tight mb-2">車両グランプリ<br/>投票</h3>
+              <p class="text-sm opacity-70">好きな車に投票できます。何台でもOK！</p>
+
+              {/* 展示車両情報 */}
+              <div class="mt-4 pt-4 border-t border-white/15">
+                <p class="text-[10px] opacity-50 mb-1">集結する車 なんと...</p>
+                <div class="flex items-baseline gap-2 mb-2.5">
+                  <span class="font-display font-800 text-4xl tracking-tighter">{totalCars}</span>
+                  <span class="text-sm opacity-70">台</span>
+                </div>
+                <div class="flex rounded-full overflow-hidden h-2 bar-grow">
+                  {activeZones.map(zone => (
+                    <div style={`flex: ${zone.carCount}; background-color: ${zone.color}`} />
+                  ))}
+                </div>
+                <div class="flex justify-between mt-2">
+                  {activeZones.map(zone => (
+                    <div class="flex items-center gap-1">
+                      <div class="w-1.5 h-1.5 rounded-full shrink-0" style={`background-color: ${zone.color}`} />
+                      <span class="text-[9px] opacity-60 font-600">{zone.id}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1.5 mt-4 opacity-50">
+                <span class="text-xs font-600">投票する</span>
+                <span class="i-ph-arrow-right-bold text-sm" />
+              </div>
+            </div>
+          </a>
+
+        </div>
+      </div>
+    </section>
+
+    {/* 去年の様子ギャラリー */}
+    <section class="mt-8 px-5">
+      <div class="max-w-lg mx-auto">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="i-ph-camera-duotone text-xl text-secondary" />
+          <h2 class="font-display font-700 text-lg text-on-surface tracking-tight">去年はこんな感じでした！</h2>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          {galleryPhotos.map((photo, i) => (
+            <div class:list={['rounded-xl overflow-hidden cursor-pointer active:scale-95 transition-transform duration-150', i === 0 ? 'col-span-2 row-span-2' : '']} data-gallery-img>
+              <img src={`/gallery/${photo}`} alt={`旧車サミット2025 #${i + 1}`} class="w-full h-full object-cover aspect-square" loading="lazy" />
+            </div>
+          ))}
+        </div>
+        {/* ギャラリーモーダル */}
+        <div id="gallery-modal" class="fixed inset-0 z-[70] flex-center pointer-events-none" style="background:rgba(0,0,0,0);transition:background 0.25s ease">
+          <button id="gallery-close" class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/15 flex-center text-white text-xl cursor-pointer opacity-0 transition-opacity duration-250">&times;</button>
+          <button id="gallery-prev" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 flex-center text-white text-xl cursor-pointer opacity-0 transition-opacity duration-250"><span class="i-ph-caret-left-bold" /></button>
+          <button id="gallery-next" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 flex-center text-white text-xl cursor-pointer opacity-0 transition-opacity duration-250"><span class="i-ph-caret-right-bold" /></button>
+          <img id="gallery-modal-img" src="" alt="" class="max-w-[92vw] max-h-[85vh] object-contain rounded-xl opacity-0 transition-all duration-250" style="transform:scale(0.92)" />
+          <div id="gallery-counter" class="absolute bottom-5 left-1/2 -translate-x-1/2 text-white/60 text-xs font-display font-700 opacity-0 transition-opacity duration-250"></div>
+        </div>
+
+    {/* プロフィールモーダル */}
+    <div id="profile-modal" class="fixed inset-0 z-[60] items-end justify-center" style="display:none;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">
+      <div class="relative bg-surface-container-lowest w-full max-w-lg rounded-t-3xl p-6 pb-10 max-h-[80vh] overflow-y-auto" id="profile-sheet">
+        <div class="w-10 h-1 rounded-full bg-outline-variant mx-auto mb-4 cursor-pointer" id="profile-handle" />
+        <button id="profile-close" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-surface-container-highest flex-center text-on-surface-variant text-lg cursor-pointer">&times;</button>
+        <div class="flex flex-col items-center text-center">
+          <div class="w-24 h-24 rounded-full overflow-hidden bg-surface-container-highest mb-4" id="profile-img-wrap">
+            <img id="profile-img" src="" alt="" class="w-full h-full object-cover" />
+          </div>
+          <h3 id="profile-name" class="font-display font-800 text-xl text-on-surface tracking-tight"></h3>
+          <p id="profile-channel" class="text-xs text-on-surface-variant mt-1"></p>
+          <p id="profile-subs" class="text-[11px] text-on-surface-variant mt-0.5"></p>
+          <p id="profile-desc" class="text-sm text-on-surface-variant mt-4 leading-relaxed"></p>
+          <a id="profile-link" href="" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex items-center gap-1.5 bg-on-surface text-surface font-display font-700 text-xs px-5 py-2.5 rounded-xl active:scale-95 transition-transform duration-150 hidden">
+            <span class="i-ph-arrow-square-out text-sm" />チャンネルを見る
+          </a>
+        </div>
+      </div>
+    </div>
       </div>
     </section>
 
@@ -102,7 +276,7 @@ import NowPlaying from '../components/NowPlaying';
           <div class="flex items-start gap-3">
             <span class="i-ph-map-pin-duotone text-base text-on-surface-variant mt-0.5 shrink-0" />
             <div>
-              <p class="font-display font-600 text-on-surface">モビリティリゾートもてぎ 南コース</p>
+              <a href="https://maps.app.goo.gl/YfQZ7VqJZ3Eo6cV39" target="_blank" rel="noopener noreferrer" class="font-display font-600 text-on-surface underline decoration-secondary/30 underline-offset-2 hover:decoration-secondary">モビリティリゾートもてぎ 南コース</a>
               <p class="text-on-surface-variant text-xs mt-0.5">栃木県芳賀郡茂木町桧山120-1</p>
             </div>
           </div>
@@ -116,7 +290,7 @@ import NowPlaying from '../components/NowPlaying';
           <div class="flex items-start gap-3">
             <span class="i-ph-car-profile-duotone text-base text-on-surface-variant mt-0.5 shrink-0" />
             <div>
-              <p class="font-display font-600 text-on-surface">展示車両 247台 / 全5エリア</p>
+              <p class="font-display font-600 text-on-surface">展示車両 247台 / 全6エリア</p>
               <p class="text-on-surface-variant text-xs mt-0.5">A〜E + 茨城ゾーン</p>
             </div>
           </div>
@@ -124,36 +298,20 @@ import NowPlaying from '../components/NowPlaying';
       </div>
     </section>
 
-    {/* チケット情報（折りたたみ） */}
+    {/* チケット案内 */}
     <section class="px-5 mb-8">
-      <details class="max-w-lg mx-auto">
-        <summary class="card-tonal cursor-pointer list-none flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full flex-center bg-secondary-fixed">
-              <span class="i-ph-ticket-duotone text-sm text-on-secondary-fixed" />
-            </div>
-            <span class="font-display font-700 text-sm text-on-surface tracking-tight">チケット情報</span>
+      <a href="/ticket" class="block max-w-lg mx-auto card-tonal card-press rounded-2xl flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-full flex-center bg-secondary-fixed">
+            <span class="i-ph-ticket-duotone text-sm text-on-secondary-fixed" />
           </div>
-          <span class="i-ph-caret-down-bold text-on-surface-variant text-sm transition-transform duration-200 details-arrow" />
-        </summary>
-        <div class="bg-surface-container-low rounded-b-xl px-5 pb-5 -mt-3 pt-6 space-y-2 text-sm">
-          <div class="flex justify-between items-center bg-surface-container-lowest rounded-xl px-4 py-3">
-            <span class="text-on-surface-variant">展示車両チケット</span>
-            <span class="font-display font-700 text-on-surface">¥8,000<span class="text-xs font-400 text-on-surface-variant">/台</span></span>
+          <div>
+            <span class="font-display font-700 text-sm text-on-surface tracking-tight">チケット購入</span>
+            <p class="text-[10px] text-on-surface-variant">前売り ¥1,500〜</p>
           </div>
-          <div class="flex justify-between items-center bg-surface-container-lowest rounded-xl px-4 py-3">
-            <span class="text-on-surface-variant">一般入場 (前売り)</span>
-            <span class="font-display font-700 text-on-surface">¥1,500<span class="text-xs font-400 text-on-surface-variant">/人</span></span>
-          </div>
-          <div class="flex justify-between items-center bg-surface-container-lowest rounded-xl px-4 py-3">
-            <span class="text-on-surface-variant">一般入場 (当日)</span>
-            <span class="font-display font-700 text-on-surface">¥2,500<span class="text-xs font-400 text-on-surface-variant">/人</span></span>
-          </div>
-          <p class="text-[11px] text-on-surface-variant mt-3 leading-relaxed">
-            ※ 前売りにはもてぎ入場料・駐車場代が含まれます。当日券は別途もてぎ入場料(大人¥1,900)・駐車場代(¥1,000)が必要。
-          </p>
         </div>
-      </details>
+        <span class="i-ph-caret-right-bold text-on-surface-variant text-sm" />
+      </a>
     </section>
 
   </main>
@@ -161,11 +319,163 @@ import NowPlaying from '../components/NowPlaying';
   <Nav />
 </Layout>
 
+<script>
+  // Gallery modal
+  const modal = document.getElementById('gallery-modal')!;
+  const modalImg = document.getElementById('gallery-modal-img') as HTMLImageElement;
+  const galleryClose = document.getElementById('gallery-close')!;
+  const galleryPrev = document.getElementById('gallery-prev')!;
+  const galleryNext = document.getElementById('gallery-next')!;
+  const galleryCounter = document.getElementById('gallery-counter')!;
+  const galleryItems = document.querySelectorAll('[data-gallery-img]');
+  const gallerySrcs: string[] = [];
+  let currentGalleryIdx = 0;
+  let galleryOpen = false;
+
+  galleryItems.forEach((el, i) => {
+    const img = el.querySelector('img') as HTMLImageElement;
+    gallerySrcs.push(img.src);
+    el.addEventListener('click', () => openGallery(i));
+  });
+
+  function openGallery(idx: number) {
+    currentGalleryIdx = idx;
+    showGalleryImage(idx);
+    galleryOpen = true;
+    modal.style.pointerEvents = 'auto';
+    modal.style.backdropFilter = 'blur(8px)';
+    modal.style.setProperty('-webkit-backdrop-filter', 'blur(8px)');
+    modal.style.background = 'rgba(0,0,0,0.92)';
+    modalImg.style.opacity = '1';
+    modalImg.style.transform = 'scale(1)';
+    galleryClose.style.opacity = '1';
+    galleryPrev.style.opacity = gallerySrcs.length > 1 ? '1' : '0';
+    galleryNext.style.opacity = gallerySrcs.length > 1 ? '1' : '0';
+    galleryCounter.style.opacity = '1';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function showGalleryImage(idx: number) {
+    modalImg.src = gallerySrcs[idx];
+    modalImg.alt = `旧車サミット2025 #${idx + 1}`;
+    galleryCounter.textContent = `${idx + 1} / ${gallerySrcs.length}`;
+  }
+
+  function closeGallery() {
+    galleryOpen = false;
+    modal.style.background = 'rgba(0,0,0,0)';
+    modalImg.style.opacity = '0';
+    modalImg.style.transform = 'scale(0.92)';
+    galleryClose.style.opacity = '0';
+    galleryPrev.style.opacity = '0';
+    galleryNext.style.opacity = '0';
+    galleryCounter.style.opacity = '0';
+    document.body.style.overflow = '';
+    setTimeout(() => {
+      if (!galleryOpen) {
+        modal.style.pointerEvents = 'none';
+        modal.style.backdropFilter = 'none';
+        modal.style.setProperty('-webkit-backdrop-filter', 'none');
+      }
+    }, 250);
+  }
+
+  function galleryNav(dir: number) {
+    currentGalleryIdx = (currentGalleryIdx + dir + gallerySrcs.length) % gallerySrcs.length;
+    modalImg.style.opacity = '0';
+    setTimeout(() => {
+      showGalleryImage(currentGalleryIdx);
+      modalImg.style.opacity = '1';
+    }, 150);
+  }
+
+  galleryClose.addEventListener('click', closeGallery);
+  galleryPrev.addEventListener('click', (e) => { e.stopPropagation(); galleryNav(-1); });
+  galleryNext.addEventListener('click', (e) => { e.stopPropagation(); galleryNav(1); });
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeGallery(); });
+
+  // キーボード操作
+  document.addEventListener('keydown', (e) => {
+    if (!galleryOpen) return;
+    if (e.key === 'Escape') closeGallery();
+    if (e.key === 'ArrowLeft') galleryNav(-1);
+    if (e.key === 'ArrowRight') galleryNav(1);
+  });
+
+  // スワイプ操作
+  let touchStartX = 0;
+  modal.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  modal.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) galleryNav(dx < 0 ? 1 : -1);
+  });
+
+  // Profile modal
+  const profileModal = document.getElementById('profile-modal')!;
+  const profileImg = document.getElementById('profile-img') as HTMLImageElement;
+  const profileImgWrap = document.getElementById('profile-img-wrap')!;
+  const profileName = document.getElementById('profile-name')!;
+  const profileChannel = document.getElementById('profile-channel')!;
+  const profileSubs = document.getElementById('profile-subs')!;
+  const profileDesc = document.getElementById('profile-desc')!;
+  const profileLink = document.getElementById('profile-link') as HTMLAnchorElement;
+
+  document.querySelectorAll('[data-profile]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const d = (el as HTMLElement).dataset;
+      profileName.textContent = d.name || '';
+      profileChannel.textContent = d.channel || '';
+      profileSubs.textContent = d.subs ? d.subs + ' subscribers' : '';
+      profileDesc.textContent = d.desc || '';
+      if (d.img) {
+        profileImg.src = d.img;
+        profileImg.alt = d.name || '';
+        profileImgWrap.classList.remove('hidden');
+      } else {
+        profileImgWrap.classList.add('hidden');
+      }
+      if (d.url) {
+        profileLink.href = d.url;
+        profileLink.classList.remove('hidden');
+      } else {
+        profileLink.classList.add('hidden');
+      }
+      profileModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    });
+  });
+  function closeProfile() {
+    profileModal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  profileModal.addEventListener('click', (e) => {
+    if (e.target === profileModal) closeProfile();
+  });
+  document.getElementById('profile-close')!.addEventListener('click', closeProfile);
+  document.getElementById('profile-handle')!.addEventListener('click', closeProfile);
+
+</script>
+
 <style>
+  .hero-text {
+    text-shadow: none;
+  }
+  .no-text-shadow, .no-text-shadow * {
+    text-shadow: none;
+  }
   details[open] .details-arrow {
     transform: rotate(180deg);
   }
   details summary::-webkit-details-marker {
+    display: none;
+  }
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
 </style>

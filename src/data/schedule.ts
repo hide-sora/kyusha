@@ -68,8 +68,8 @@ export const scheduleEvents: ScheduleEvent[] = [
   {
     time: '13:30',
     title: 'イベント車両グランプリ投票締切',
-    description: '水戸道楽TVブースにて',
-    location: '水戸道楽TVブース',
+    description: 'アプリ内で投票',
+    location: 'アプリ内',
     highlight: true,
     startMinutes: hm(13, 30),
     endMinutes: hm(14, 0),

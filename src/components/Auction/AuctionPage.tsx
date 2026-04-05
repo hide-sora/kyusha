@@ -286,7 +286,7 @@ export default function AuctionPage() {
         <span className="i-ph-megaphone-duotone text-2xl shrink-0 relative z-10" />
         <div className="relative z-10">
           <p className="font-display font-700 text-sm">チャリティーオークション開催中!</p>
-          <p className="text-xs opacity-80">各YouTuberの出品物に入札しよう</p>
+          <p className="text-xs opacity-80">各YouTuberの出品物に入札できます</p>
         </div>
       </div>
 

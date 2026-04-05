@@ -19,6 +19,14 @@ const fullTitle = title === '旧車サミット2026' ? title : `${title} | 旧�
 </head>
 <body class="layout-base">
   <slot />
+  <style is:global>
+    :root {
+      --nav-h: calc(5rem + env(safe-area-inset-bottom, 0px));
+    }
+    .pb-nav-safe {
+      padding-bottom: var(--nav-h);
+    }
+  </style>
   <script>
     // Scroll-reveal IntersectionObserver
     const observer = new IntersectionObserver(

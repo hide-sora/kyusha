@@ -7,13 +7,25 @@ export default defineConfig({
     'i-ph-gavel-duotone', 'i-ph-trophy-duotone',
     'i-ph-car-profile-duotone', 'i-ph-steering-wheel-duotone',
     'i-ph-flag-checkered-duotone', 'i-ph-megaphone-duotone',
-    'i-ph-caret-right-bold', 'i-ph-arrow-left-bold', 'i-ph-arrow-right-bold',
+    'i-ph-caret-right-bold', 'i-ph-caret-left-bold', 'i-ph-arrow-left-bold', 'i-ph-arrow-right-bold',
     'i-ph-fire-bold', 'i-ph-check-bold',
     'i-ph-flag-checkered-fill', 'i-ph-clock-duotone', 'i-ph-calendar-duotone',
     'i-ph-map-pin-duotone', 'i-ph-ticket-duotone',
     'i-ph-house-duotone', 'i-ph-spinner-bold',
     'i-ph-info-duotone', 'i-ph-caret-down-bold',
     'i-ph-star-duotone', 'i-ph-users-three-duotone',
+    'i-ph-microphone-stage-duotone', 'i-ph-fire-duotone',
+    'i-ph-flag-banner-duotone', 'i-ph-timer-duotone',
+    'i-ph-youtube-logo-duotone', 'i-ph-arrow-square-out',
+    // Ticket / payment icons
+    'i-ph-check-circle-duotone', 'i-ph-check-circle-fill',
+    'i-ph-minus-bold', 'i-ph-plus-bold',
+    'i-ph-credit-card-bold', 'i-ph-credit-card-duotone',
+    'i-ph-lock-key-bold', 'i-ph-lock-key-duotone',
+    'i-ph-lock-simple-duotone',
+    'i-ph-shield-check-duotone',
+    'i-ph-circle-notch-bold',
+    'i-ph-warning-circle-duotone',
   ],
   presets: [
     presetWind3(),
@@ -159,6 +171,9 @@ export default defineConfig({
   preflights: [
     {
       getCSS: () => `
+        *, *::before, *::after {
+          box-sizing: border-box;
+        }
         html {
           scroll-behavior: smooth;
           -webkit-tap-highlight-color: transparent;

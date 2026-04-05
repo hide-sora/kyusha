@@ -17,7 +17,7 @@ export const zones: Zone[] = [
   {
     id: 'B',
     name: 'Bゾーン',
-    description: '日産スカイライン GT-R (R32〜R34)',
+    description: '日産スカイライン',
     carCount: 25,
     color: '#457b9d',
   },
@@ -27,6 +27,13 @@ export const zones: Zone[] = [
     description: '一般旧車系 (〜1989年)',
     carCount: 87,
     color: '#2a9d8f',
+  },
+  {
+    id: '茨',
+    name: '茨城友の会',
+    description: 'ホンダS660を中心としたコミュニティー',
+    carCount: 0,
+    color: '#7c3aed',
   },
   {
     id: 'D',
@@ -41,12 +48,5 @@ export const zones: Zone[] = [
     description: 'スーパーカー・輸入車',
     carCount: 14,
     color: '#f4a261',
-  },
-  {
-    id: '茨',
-    name: '茨ゾーン',
-    description: '茨城県ゆかりの車両',
-    carCount: 0,
-    color: '#7c3aed',
   },
 ];

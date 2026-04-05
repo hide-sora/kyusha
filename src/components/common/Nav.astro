@@ -1,30 +1,40 @@
 ---
+import { reveals, isLocked } from '../../data/reveals';
+
 const currentPath = Astro.url.pathname;
 
 const navItems = [
-  { href: '/', label: 'Home', icon: 'i-ph-house-duotone' },
-  { href: '/map', label: 'Map', icon: 'i-ph-map-trifold-duotone' },
-  { href: '/schedule', label: 'Schedule', icon: 'i-ph-clock-countdown-duotone' },
-  { href: '/auction', label: 'Auction', icon: 'i-ph-gavel-duotone' },
-  { href: '/vote', label: 'Vote', icon: 'i-ph-trophy-duotone' },
-  { href: '/creators', label: 'Guest', icon: 'i-ph-users-three-duotone' },
+  { href: '/', label: 'ホーム', icon: 'i-ph-house-duotone', revealKey: null },
+  { href: '/map', label: 'マップ', icon: 'i-ph-map-trifold-duotone', revealKey: 'map' as const },
+  { href: '/schedule', label: 'スケジュール', icon: 'i-ph-clock-countdown-duotone', revealKey: 'schedule' as const },
+  { href: '/auction', label: 'オークション', icon: 'i-ph-gavel-duotone', revealKey: 'auction' as const },
+  { href: '/vote', label: '投票', icon: 'i-ph-trophy-duotone', revealKey: 'vote' as const },
+  { href: '/creators', label: 'ゲスト', icon: 'i-ph-users-three-duotone', revealKey: null },
 ];
 ---
 <nav class="fixed bottom-0 left-0 right-0 z-50 glass rounded-t-xl shadow-[0_-20px_40px_rgba(46,51,54,0.06)] safe-area-bottom">
-  <div class="flex justify-around items-center px-4 pt-3 pb-5 max-w-lg mx-auto">
+  <div class="grid grid-cols-6 items-center px-2 pt-3 pb-5 max-w-lg mx-auto">
     {navItems.map(item => {
       const isActive = currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href));
+      const locked = item.revealKey ? isLocked(item.revealKey) : false;
       return (
         <a
           href={item.href}
           class:list={[
             'relative flex flex-col items-center justify-center transition-all active:scale-85 duration-200',
-            isActive ? 'text-zinc-900 font-700 scale-110' : 'text-zinc-400 hover:text-zinc-600',
+            isActive ? 'text-zinc-900 font-700 scale-110' : locked ? 'text-zinc-400/60 hover:text-zinc-500' : 'text-zinc-400 hover:text-zinc-600',
           ]}
         >
           {isActive && <span class="nav-dot" />}
-          <span class:list={[item.icon, 'text-xl transition-transform duration-200']} />
-          <span class="text-[10px] tracking-widest font-500 uppercase mt-1">{item.label}</span>
+          <span class="relative inline-block">
+            <span class:list={[item.icon, 'text-xl transition-transform duration-200']} />
+            {locked && !isActive && (
+              <span class="nav-lock-badge">
+                <span class="i-ph-lock-simple-duotone" style="width:6px;height:6px;display:block;" />
+              </span>
+            )}
+          </span>
+          <span class="text-[9px] tracking-wide font-500 mt-1">{item.label}</span>
         </a>
       );
     })}
@@ -34,5 +44,19 @@ const navItems = [
 <style>
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .nav-lock-badge {
+    position: absolute;
+    top: -3px;
+    right: -4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background: rgba(251,191,36,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #09090b;
   }
 </style>

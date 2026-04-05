@@ -4,7 +4,7 @@
     {
       "name": "kyusha-summit",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["astro", "dev"],
+      "runtimeArgs": ["astro", "dev", "--port", "4400"],
       "port": 4400,
       "autoPort": true
     }

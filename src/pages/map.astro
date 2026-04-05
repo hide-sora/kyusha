@@ -4,15 +4,18 @@ import Nav from '../components/common/Nav.astro';
 import { zones } from '../data/zones';
 ---
 <Layout title="会場マップ">
-  <main class="min-h-screen pb-28">
+  <main class="min-h-screen pb-nav-safe">
     <header class="px-6 pt-12 pb-8">
-      <p class="label-upper text-primary mb-2">Location Detail</p>
+      <p class="label-upper text-primary mb-2">まずはここをチェック！</p>
       <h1 class="font-display font-800 text-4xl tracking-tight text-on-surface mb-2">
         会場マップ
       </h1>
-      <div class="flex items-center gap-2 mt-2">
+      <p class="text-sm text-on-surface-variant leading-relaxed mb-2">
+        広い会場なので、見たいエリアを先に確認しておくとスムーズです
+      </p>
+      <div class="flex items-center gap-2 mt-1">
         <span class="i-ph-map-pin-duotone text-secondary text-sm" />
-        <span class="text-xs font-500 text-on-surface-variant tracking-wide">栃木県 — モビリティリゾートもてぎ 南コース</span>
+        <a href="https://maps.app.goo.gl/YfQZ7VqJZ3Eo6cV39" target="_blank" rel="noopener noreferrer" class="text-xs font-500 text-on-surface-variant tracking-wide underline decoration-secondary/30 underline-offset-2 hover:decoration-secondary">モビリティリゾートもてぎ 南コース</a>
       </div>
     </header>
 
@@ -42,10 +45,6 @@ import { zones } from '../data/zones';
             <div class="flex-1 min-w-0">
               <h3 class="font-display font-700 text-sm text-on-surface">{zone.name}</h3>
               <p class="text-xs text-on-surface-variant truncate">{zone.description}</p>
-            </div>
-            <div class="text-right shrink-0">
-              <span class="font-display font-700 text-lg text-on-surface">{zone.carCount}</span>
-              <span class="text-[10px] text-on-surface-variant block tracking-widest uppercase">台</span>
             </div>
           </div>
         ))}

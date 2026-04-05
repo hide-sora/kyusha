@@ -1,7 +1,7 @@
 import PocketBase from 'pocketbase';
 
 // PocketBase URL（開発時はローカル、本番は環境変数から）
-const PB_URL = import.meta.env.PUBLIC_PB_URL || 'http://127.0.0.1:8093';
+const PB_URL = import.meta.env.PUBLIC_PB_URL || 'http://133.18.160.234:8093';
 
 let pb: PocketBase;
 

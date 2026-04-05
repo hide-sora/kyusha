@@ -1,0 +1,60 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/common/Nav.astro';
+import TicketForm from '../components/Ticket/TicketForm';
+
+const now = new Date();
+const cutoff = new Date('2026-04-21T00:00:00+09:00');
+const isAdvanceSale = now < cutoff;
+---
+<Layout title="チケット購入">
+  <main class="min-h-screen pb-nav-safe">
+    <header class="px-6 pt-12 pb-6 max-w-lg mx-auto">
+      <p class="label-upper text-secondary mb-2">チケット</p>
+      <h1 class="font-display font-800 text-3xl tracking-tight text-on-surface mb-2">
+        チケット購入
+      </h1>
+      <p class="text-xs text-on-surface-variant">
+        2026/04/26（日）モビリティリゾートもてぎ 南コース
+      </p>
+    </header>
+
+    <div class="px-5 max-w-lg mx-auto space-y-5">
+
+      {/* ── 購入フォーム ── */}
+      <div class="card-elevated p-5">
+        <TicketForm isAdvanceSale={isAdvanceSale} client:load />
+      </div>
+
+      {/* ── 当日券: 早めの来場を促すメッセージ ── */}
+      {!isAdvanceSale && (
+        <div class="bg-error/8 border-2 border-error/30 rounded-xl p-4">
+          <p class="font-display font-800 text-sm text-error mb-2 flex items-center gap-1.5">
+            <span class="i-ph-megaphone-duotone text-base" />お早めのご購入を！
+          </p>
+          <p class="text-xs text-on-surface leading-relaxed">
+            駐車場の数には限りがあります。専用駐車場（約2,000台）が満車の場合、モビリティリゾートもてぎの駐車場をご利用いただくこととなり、<span class="font-800 text-error">費用がかさみます。</span>
+          </p>
+          <p class="text-xs font-700 text-on-surface mt-2">
+            お早めのご来場をおすすめいたします。
+          </p>
+        </div>
+      )}
+
+      {/* ── 注意事項 ── */}
+      <div class="bg-surface-container-low rounded-xl p-4 mb-6">
+        <h3 class="font-display font-700 text-xs text-on-surface mb-2 flex items-center gap-1.5">
+          <span class="i-ph-info-duotone text-sm text-on-surface-variant" />ご注意
+        </h3>
+        <ul class="text-[11px] text-on-surface-variant leading-relaxed space-y-1 list-none">
+          <li>前売りにはもてぎ入場料・駐車場代が含まれます</li>
+          <li>小学生以下は入場無料</li>
+          <li>雨天決行</li>
+          <li>ペット同伴可（リード着用必須）</li>
+        </ul>
+      </div>
+
+    </div>
+  </main>
+  <Nav />
+</Layout>

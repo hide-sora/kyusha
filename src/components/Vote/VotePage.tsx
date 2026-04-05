@@ -18,7 +18,7 @@ function isVotingOpen(): boolean {
 const ZONE_IDS = zones.map(z => z.id);
 
 export default function VotePage() {
-  const [zone, setZone] = useState('A');
+  const [zone, setZone] = useState('');
   const [number, setNumber] = useState('');
   const [ranking, setRanking] = useState<VoteRanking[]>([]);
   const [filterZone, setFilterZone] = useState<string | null>(null);
@@ -26,8 +26,6 @@ export default function VotePage() {
   const [message, setMessage] = useState('');
   const [votingOpen, setVotingOpen] = useState(isVotingOpen);
   const [myVotes, setMyVotes] = useState<string[]>([]);
-  const lastVoteTime = useRef(0);
-
   const pb = getPb();
 
   useEffect(() => {
@@ -54,24 +52,45 @@ export default function VotePage() {
     }
   }, []);
 
+  // 自分の投票済み車番を取得
+  const fetchMyVotes = useCallback(async () => {
+    try {
+      const deviceId = getDeviceId();
+      const records = await pb.collection('car_votes').getFullList({
+        filter: `device_id = "${deviceId}"`,
+        fields: 'car_number',
+      });
+      setMyVotes(records.map((r: any) => r.car_number));
+    } catch {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
     fetchRanking();
+    fetchMyVotes();
     const unsub = pb.collection('car_votes').subscribe('*', () => {
       fetchRanking();
     });
     return () => { unsub.then(fn => fn()); };
-  }, [fetchRanking]);
+  }, [fetchRanking, fetchMyVotes]);
 
   const handleVote = useCallback(async () => {
-    if (Date.now() - lastVoteTime.current < 10000) {
-      setMessage('少し間をあけてから投票してください');
+    if (!zone) {
+      setMessage('ゾーンを選択してください');
+      return;
+    }
+    const carNumber = `${zone}${number.padStart(3, '0')}`;
+    const numVal = parseInt(number);
+    if (!number || numVal < 1 || numVal > 999) {
+      setMessage('001〜999の数字を入力してください');
       return;
     }
 
-    const carNumber = `${zone}${number.padStart(2, '0')}`;
-    const numVal = parseInt(number);
-    if (!number || numVal < 1 || numVal > 99) {
-      setMessage('01〜99の数字を入力してください');
+    if (myVotes.includes(carNumber)) {
+      setMessage(`${carNumber} にはすでに投票済みです`);
+      setZone('');
+      setNumber('');
       return;
     }
 
@@ -85,14 +104,15 @@ export default function VotePage() {
       });
       setMyVotes(prev => [...prev, carNumber]);
       setMessage(`${carNumber} に投票しました!`);
-      setNumber('');
-      lastVoteTime.current = Date.now();
-    } catch {
+    } catch (e) {
+      console.error('Vote failed:', e);
       setMessage('投票に失敗しました。もう一度お試しください。');
     } finally {
+      setZone('');
+      setNumber('');
       setSubmitting(false);
     }
-  }, [zone, number]);
+  }, [zone, number, myVotes]);
 
   const filteredRanking = filterZone
     ? ranking.filter(r => r.car_number.startsWith(filterZone))
@@ -107,64 +127,83 @@ export default function VotePage() {
             <div className="w-8 h-8 rounded-full flex-center bg-tertiary-fixed">
               <span className="i-ph-car-profile-duotone text-lg text-on-tertiary-fixed" />
             </div>
-            お気に入りの一台に投票
+            好きな車に投票！
           </h2>
 
           {/* ゾーン選択 */}
           <div className="mb-4">
             <label className="text-[10px] text-on-surface-variant block mb-2 tracking-widest uppercase font-600">ゾーン</label>
-            <div className="flex flex-wrap gap-1.5">
-              {ZONE_IDS.map(z => (
-                <button
-                  key={z}
-                  onClick={() => setZone(z)}
-                  className={`min-w-10 h-10 px-3 rounded-xl font-display font-700 text-sm transition-all duration-200 ${
-                    zone === z
-                      ? 'bg-on-surface text-surface scale-105 shadow-[0_4px_12px_rgba(46,51,54,0.15)]'
-                      : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest active:scale-90'
-                  }`}
-                >
-                  {z}
-                </button>
-              ))}
+            <div className="grid grid-cols-6 gap-1.5">
+              {ZONE_IDS.map(z => {
+                const zoneData = zones.find(zd => zd.id === z);
+                return (
+                  <button
+                    key={z}
+                    onClick={() => setZone(z)}
+                    className={`aspect-square rounded-2xl font-display font-800 text-lg transition-all duration-200 flex-center ${
+                      zone === z
+                        ? 'text-white scale-105 shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
+                        : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest active:scale-90'
+                    }`}
+                    style={zone === z ? { backgroundColor: zoneData?.color || '#666' } : undefined}
+                  >
+                    {z}
+                  </button>
+                );
+              })}
             </div>
-          </div>
-
-          {/* 番号入力 + 投票ボタン */}
-          <div className="flex gap-3 items-end">
-            <div>
-              <label className="text-[10px] text-on-surface-variant block mb-1 tracking-widest uppercase font-600">番号 (01〜99)</label>
-              <input
-                type="number"
-                placeholder="01"
-                value={number}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v.length <= 2) setNumber(v);
-                }}
-                min={1}
-                max={99}
-                className="w-20 h-12 bg-surface-container-highest rounded-xl px-3 text-center font-display font-700 text-xl text-on-surface placeholder:text-on-surface-variant/30 outline-none focus:ring-2 focus:ring-primary/30 transition-all tabular-nums"
-              />
-            </div>
-            <button
-              onClick={handleVote}
-              disabled={submitting || !number}
-              className="btn-primary h-12 px-6 disabled:opacity-50 text-sm"
-            >
-              {submitting ? '...' : '投票'}
-            </button>
           </div>
 
           {/* プレビュー */}
-          {number && (
-            <p className="text-center mt-3 font-display font-800 text-2xl text-on-surface animate-scaleIn">
-              {zone}{number.padStart(2, '0')}
-            </p>
-          )}
+          <div className="bg-surface-container rounded-xl px-4 py-3 mb-3 flex items-center justify-center gap-1">
+            <span className={`font-display font-800 text-3xl tabular-nums tracking-tight ${zone ? 'text-on-surface' : 'text-on-surface-variant/20'}`}>
+              {zone || '?'}
+            </span>
+            <span className={`font-display font-800 text-3xl tabular-nums tracking-tight ${number ? 'text-on-surface' : 'text-on-surface-variant/20'}`}>
+              {number ? number.padStart(3, '0') : '000'}
+            </span>
+          </div>
+
+          {/* テンキー + 投票ボタン */}
+          <div className="grid grid-cols-3 gap-1.5">
+            {[1,2,3,4,5,6,7,8,9].map(n => (
+              <button
+                key={n}
+                onClick={() => setNumber(prev => prev.length >= 3 ? String(n) : prev + n)}
+                className="h-12 rounded-xl font-display font-700 text-lg text-on-surface bg-surface-container-high active:scale-90 active:bg-surface-container-highest transition-all duration-100"
+              >
+                {n}
+              </button>
+            ))}
+            <button
+              onClick={() => setNumber('')}
+              className="h-12 rounded-xl font-display font-600 text-xs text-on-surface-variant bg-surface-container active:scale-90 transition-all duration-100 uppercase tracking-wider"
+            >
+              C
+            </button>
+            <button
+              onClick={() => setNumber(prev => prev.length >= 3 ? '0' : prev + '0')}
+              className="h-12 rounded-xl font-display font-700 text-lg text-on-surface bg-surface-container-high active:scale-90 active:bg-surface-container-highest transition-all duration-100"
+            >
+              0
+            </button>
+            <button
+              onClick={() => setNumber(prev => prev.slice(0, -1))}
+              className="h-12 rounded-xl font-display font-600 text-on-surface-variant bg-surface-container active:scale-90 transition-all duration-100 flex-center"
+            >
+              <span className="i-ph-arrow-left-bold text-base" />
+            </button>
+          </div>
+          <button
+            onClick={handleVote}
+            disabled={submitting || !number || !zone}
+            className="btn-primary w-full h-12 disabled:opacity-30 text-sm mt-3"
+          >
+            {submitting ? '...' : zone && number ? `${zone}${number.padStart(3, '0')} に投票！` : 'ゾーンと番号を入力'}
+          </button>
 
           {message && (
-            <p className={`text-xs mt-2 animate-slideInRight ${message.includes('失敗') || message.includes('間を') ? 'text-error' : 'text-secondary'}`}>
+            <p className={`text-xs mt-2 animate-slideInRight ${message.includes('失敗') || message.includes('投票済み') ? 'text-error' : 'text-secondary'}`}>
               {message.includes('投票しました') && <span className="inline-block vote-success mr-1">✓</span>}
               {message}
             </p>

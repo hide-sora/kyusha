@@ -76,13 +76,13 @@ export default function Countdown() {
   }
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-center gap-3">
       <CountUnit value={timeLeft.days} label="DAYS" />
-      <span className="font-display text-2xl font-300 text-outline-variant mb-4">:</span>
+      <span className="font-display text-2xl font-300 text-outline-variant mb-5">:</span>
       <CountUnit value={timeLeft.hours} label="HRS" />
-      <span className="font-display text-2xl font-300 text-outline-variant mb-4">:</span>
+      <span className="font-display text-2xl font-300 text-outline-variant mb-5">:</span>
       <CountUnit value={timeLeft.minutes} label="MIN" />
-      <span className="font-display text-2xl font-300 text-outline-variant mb-4">:</span>
+      <span className="font-display text-2xl font-300 text-outline-variant mb-5">:</span>
       <CountUnit value={timeLeft.seconds} label="SEC" />
     </div>
   );
