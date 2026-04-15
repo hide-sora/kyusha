@@ -21,11 +21,18 @@ export default defineConfig({
     'i-ph-check-circle-duotone', 'i-ph-check-circle-fill',
     'i-ph-minus-bold', 'i-ph-plus-bold',
     'i-ph-credit-card-bold', 'i-ph-credit-card-duotone',
-    'i-ph-lock-key-bold', 'i-ph-lock-key-duotone',
-    'i-ph-lock-simple-duotone',
+    'i-ph-lock-key-bold', 'i-ph-lock-simple-duotone',
     'i-ph-shield-check-duotone',
     'i-ph-circle-notch-bold',
     'i-ph-warning-circle-duotone',
+    // Map page icons
+    'i-ph-sign-in-duotone',
+    // Admin page icons
+    'i-ph-lightning-duotone',
+    // Verify page icons
+    'i-ph-qr-code-duotone', 'i-ph-x-circle-duotone',
+    'animate-spin',
+    'animate-ping',
   ],
   presets: [
     presetWind3(),

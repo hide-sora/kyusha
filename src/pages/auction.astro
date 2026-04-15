@@ -2,13 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/common/Nav.astro';
 import AuctionPage from '../components/Auction/AuctionPage';
-import RevealGate from '../components/common/RevealGate.astro';
-import { reveals } from '../data/reveals';
+import AuctionShowcase from '../components/Auction/AuctionShowcase';
 ---
 <Layout title="オークション">
-  <RevealGate config={reveals.auction}>
   <main class="min-h-screen pb-nav-safe">
-    <header class="px-6 pt-12 pb-8 max-w-lg mx-auto">
+    <header class="px-6 pt-12 pb-6 max-w-lg mx-auto">
       <p class="label-upper text-tertiary mb-2">お楽しみ企画</p>
       <h1 class="font-display font-800 text-4xl tracking-tight text-on-surface mb-3">
         チャリティーオークション
@@ -22,9 +20,20 @@ import { reveals } from '../data/reveals';
       </div>
     </header>
 
+    <!-- Showcase slider -->
+    <section class="mb-6">
+      <div class="px-6 max-w-lg mx-auto mb-4">
+        <h2 class="font-display font-700 text-sm text-on-surface flex items-center gap-2">
+          <div class="w-7 h-7 rounded-full flex-center bg-tertiary-fixed">
+            <span class="i-ph-gavel-duotone text-sm text-on-tertiary-fixed" />
+          </div>
+          出品ラインナップ
+        </h2>
+      </div>
+      <AuctionShowcase client:load />
+    </section>
+
     <AuctionPage client:load />
   </main>
-  </RevealGate>
-
   <Nav />
 </Layout>

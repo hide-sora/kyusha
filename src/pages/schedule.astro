@@ -2,11 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/common/Nav.astro';
 import Timeline from '../components/Schedule/Timeline';
-import RevealGate from '../components/common/RevealGate.astro';
-import { reveals } from '../data/reveals';
 ---
 <Layout title="タイムスケジュール">
-  <RevealGate config={reveals.schedule}>
   <main class="min-h-screen pb-nav-safe">
     <header class="px-6 pt-12 pb-4 max-w-lg mx-auto">
       <p class="label-upper text-secondary mb-2">当日の流れ</p>
@@ -30,6 +27,5 @@ import { reveals } from '../data/reveals';
 
     <Timeline client:load />
   </main>
-
   <Nav />
 </Layout>

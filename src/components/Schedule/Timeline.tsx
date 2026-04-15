@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { scheduleEvents, type ScheduleEvent } from '../../data/schedule';
 
+const EVENT_DATE = '2026-04-26';
+
+function isEventDay(): boolean {
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' }) === EVENT_DATE;
+}
+
 function getNowMinutes(): number {
   const now = new Date();
   return now.getHours() * 60 + now.getMinutes();
@@ -8,7 +14,8 @@ function getNowMinutes(): number {
 
 type Status = 'completed' | 'active' | 'upcoming';
 
-function getStatus(event: ScheduleEvent, nowMinutes: number): Status {
+function getStatus(event: ScheduleEvent, nowMinutes: number, eventDay: boolean): Status {
+  if (!eventDay) return 'upcoming';
   if (nowMinutes >= event.endMinutes) return 'completed';
   if (nowMinutes >= event.startMinutes && nowMinutes < event.endMinutes) return 'active';
   return 'upcoming';
@@ -36,7 +43,7 @@ function StatusDot({ status }: { status: Status }) {
   );
 }
 
-function EventCard({ event, status }: { event: ScheduleEvent; status: Status }) {
+function EventCard({ event, status, onPoster }: { event: ScheduleEvent; status: Status; onPoster?: () => void }) {
   return (
     <div
       className={`flex-1 min-w-0 rounded-xl p-4 transition-all duration-200 ${
@@ -88,17 +95,29 @@ function EventCard({ event, status }: { event: ScheduleEvent; status: Status }) 
             </p>
           )}
 
-          {/* Location badge */}
-          {event.location && status !== 'completed' && (
-            <div className="mt-2">
-              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-700 uppercase tracking-wider ${
-                status === 'active'
-                  ? 'bg-tertiary-container text-on-tertiary-container'
-                  : 'bg-surface-container text-on-surface-variant'
-              }`}>
-                <span className="i-ph-map-pin-duotone text-[10px]" />
-                {event.location}
-              </span>
+          {/* Location badge + Poster button */}
+          {status !== 'completed' && (event.location || event.poster) && (
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              {event.location && (
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-700 uppercase tracking-wider ${
+                  status === 'active'
+                    ? 'bg-tertiary-container text-on-tertiary-container'
+                    : 'bg-surface-container text-on-surface-variant'
+                }`}>
+                  <span className="i-ph-map-pin-duotone text-[10px]" />
+                  {event.location}
+                </span>
+              )}
+              {event.poster && onPoster && (
+                <button
+                  type="button"
+                  onClick={onPoster}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-700 tracking-wider bg-on-surface text-surface active:scale-95 transition-transform duration-150 cursor-pointer"
+                >
+                  <span className="i-ph-image-duotone text-[10px]" />
+                  詳細
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -120,16 +139,21 @@ function EventCard({ event, status }: { event: ScheduleEvent; status: Status }) 
 
 export default function Timeline() {
   const [nowMinutes, setNowMinutes] = useState(getNowMinutes);
+  const [eventDay, setEventDay] = useState(isEventDay);
+  const [posterSrc, setPosterSrc] = useState<string | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => setNowMinutes(getNowMinutes()), 30000);
+    const timer = setInterval(() => {
+      setNowMinutes(getNowMinutes());
+      setEventDay(isEventDay());
+    }, 30000);
     return () => clearInterval(timer);
   }, []);
 
   return (
     <div className="px-5 max-w-lg mx-auto">
       {scheduleEvents.map((event, i) => {
-        const status = getStatus(event, nowMinutes);
+        const status = getStatus(event, nowMinutes, eventDay);
         const isLast = i === scheduleEvents.length - 1;
 
         return (
@@ -156,11 +180,33 @@ export default function Timeline() {
 
             {/* Event content */}
             <div className={`flex-1 min-w-0 pb-3 ${status === 'completed' ? 'opacity-50' : ''}`}>
-              <EventCard event={event} status={status} />
+              <EventCard event={event} status={status} onPoster={event.poster ? () => setPosterSrc(event.poster!) : undefined} />
             </div>
           </div>
         );
       })}
+
+      {/* Poster modal */}
+      {posterSrc && (
+        <div
+          className="fixed inset-0 z-[70] flex-center"
+          style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={() => setPosterSrc(null)}
+        >
+          <button
+            type="button"
+            className="absolute top-5 right-5 w-12 h-12 rounded-full bg-white/20 flex-center text-white text-2xl cursor-pointer"
+            onClick={() => setPosterSrc(null)}
+          >
+            &times;
+          </button>
+          <img
+            src={posterSrc}
+            alt="イベント詳細"
+            className="max-w-[92vw] max-h-[85vh] object-contain rounded-xl"
+          />
+        </div>
+      )}
     </div>
   );
 }

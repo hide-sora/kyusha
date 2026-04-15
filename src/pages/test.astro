@@ -1,0 +1,139 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="管理テスト">
+  <main class="min-h-screen p-6 max-w-lg mx-auto space-y-6">
+    <h1 class="font-display font-800 text-2xl text-on-surface">管理テスト</h1>
+
+    {/* デモ開催 */}
+    <section class="card-elevated p-5 space-y-3">
+      <button id="demo-start" class="w-full py-4 rounded-2xl bg-gradient-to-r from-primary to-secondary text-on-primary font-display font-800 text-lg tracking-wide shadow-lg active:scale-98 transition-transform">
+        デモ開催
+      </button>
+      <p class="text-xs text-on-surface-variant text-center">オークション・投票を全リセットし、サンプル出品物をlive状態で作成します</p>
+      <div id="demo-links" class="hidden flex-wrap gap-2 justify-center pt-2">
+        <a href="/auction?demo" class="px-4 py-2 rounded-xl bg-secondary-container text-on-secondary-container text-sm font-700">オークション →</a>
+        <a href="/vote?demo" class="px-4 py-2 rounded-xl bg-tertiary-container text-on-tertiary-container text-sm font-700">投票 →</a>
+        <a href="/auction/board" class="px-4 py-2 rounded-xl bg-surface-container-highest text-on-surface text-sm font-700">価格ボード →</a>
+      </div>
+    </section>
+
+    {/* オークション */}
+    <section class="card-elevated p-5 space-y-4">
+      <h2 class="font-display font-700 text-lg text-on-surface flex items-center gap-2">
+        <span class="i-ph-gavel-duotone text-xl" />
+        オークション
+      </h2>
+      <div class="flex flex-wrap gap-2">
+        <button id="seed-auction" class="btn-primary px-4 py-2 text-sm">サンプル出品物を作成</button>
+        <button id="clear-auction" class="px-4 py-2 text-sm rounded-xl bg-error/10 text-error font-600">全削除</button>
+      </div>
+      <div id="auction-list" class="space-y-2"></div>
+    </section>
+
+    {/* 投票 */}
+    <section class="card-elevated p-5 space-y-4">
+      <h2 class="font-display font-700 text-lg text-on-surface flex items-center gap-2">
+        <span class="i-ph-trophy-duotone text-xl" />
+        投票
+      </h2>
+      <div class="flex flex-wrap gap-2">
+        <button id="clear-votes" class="px-4 py-2 text-sm rounded-xl bg-error/10 text-error font-600">投票データ全削除</button>
+      </div>
+    </section>
+
+    <div id="log" class="text-xs text-on-surface-variant font-mono bg-surface-container-low rounded-xl p-4 min-h-[100px] whitespace-pre-wrap"></div>
+  </main>
+</Layout>
+
+<script>
+  const log = document.getElementById('log')!;
+  function addLog(msg: string) {
+    log.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + log.textContent;
+  }
+
+  async function api(action: string, extra: Record<string, string> = {}) {
+    addLog(`${action} ...`);
+    const res = await fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...extra }),
+    });
+    const data = await res.json();
+    addLog(`${action} → ${JSON.stringify(data).substring(0, 200)}`);
+    return data;
+  }
+
+  async function refreshAuctionList() {
+    const data = await api('list_auction');
+    const container = document.getElementById('auction-list')!;
+    const items = data.items || [];
+    if (items.length === 0) {
+      container.innerHTML = '<p class="text-sm text-on-surface-variant">出品物なし</p>';
+      return;
+    }
+    container.innerHTML = items.map((item: any) => {
+      const statusColors: Record<string, string> = {
+        upcoming: 'bg-surface-container-highest text-on-surface-variant',
+        live: 'bg-error text-on-error',
+        ended: 'bg-surface-container-high text-on-surface-variant',
+      };
+      return `
+        <div class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl">
+          <div class="flex-1 min-w-0">
+            <p class="font-display font-700 text-sm text-on-surface truncate">${item.title}</p>
+            <p class="text-[10px] text-on-surface-variant">${item.youtuber_name} / ¥${item.start_price?.toLocaleString()}</p>
+          </div>
+          <span class="text-[10px] font-700 px-2 py-0.5 rounded-lg ${statusColors[item.status] || ''}">${item.status}</span>
+          <select data-item-id="${item.id}" class="status-select text-xs bg-surface-container-highest rounded-lg px-2 py-1 border-none outline-none cursor-pointer">
+            <option value="upcoming" ${item.status === 'upcoming' ? 'selected' : ''}>upcoming</option>
+            <option value="live" ${item.status === 'live' ? 'selected' : ''}>live</option>
+            <option value="ended" ${item.status === 'ended' ? 'selected' : ''}>ended</option>
+          </select>
+        </div>`;
+    }).join('');
+
+    container.querySelectorAll('.status-select').forEach(select => {
+      select.addEventListener('change', async (e) => {
+        const el = e.target as HTMLSelectElement;
+        const itemId = el.dataset.itemId!;
+        await api('update_auction_status', { itemId, status: el.value });
+        refreshAuctionList();
+      });
+    });
+  }
+
+  document.getElementById('demo-start')!.addEventListener('click', async () => {
+    if (confirm('デモを開催しますか？（既存データは全削除されます）')) {
+      const btn = document.getElementById('demo-start') as HTMLButtonElement;
+      btn.disabled = true;
+      btn.textContent = '準備中...';
+      await api('demo_start');
+      btn.disabled = false;
+      btn.textContent = 'デモ開催';
+      document.getElementById('demo-links')!.classList.remove('hidden');
+      document.getElementById('demo-links')!.classList.add('flex');
+      refreshAuctionList();
+    }
+  });
+
+  document.getElementById('seed-auction')!.addEventListener('click', async () => {
+    await api('seed_auction');
+    refreshAuctionList();
+  });
+
+  document.getElementById('clear-auction')!.addEventListener('click', async () => {
+    if (confirm('オークションデータを全削除しますか？')) {
+      await api('clear_auction');
+      refreshAuctionList();
+    }
+  });
+
+  document.getElementById('clear-votes')!.addEventListener('click', async () => {
+    if (confirm('投票データを全削除しますか？')) {
+      await api('clear_votes');
+    }
+  });
+
+  refreshAuctionList();
+</script>

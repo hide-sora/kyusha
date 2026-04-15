@@ -4,6 +4,7 @@ export interface ScheduleEvent {
   description?: string;
   location?: string;
   highlight?: boolean;
+  poster?: string;
   /** "HH:mm" 形式で比較用 */
   startMinutes: number;
   endMinutes: number;
@@ -50,9 +51,11 @@ export const scheduleEvents: ScheduleEvent[] = [
   },
   {
     time: '12:00',
-    title: '切削サイコロノベルティ抽選会',
-    description: '有限会社小林製作所ブースにて',
-    location: '小林製作所ブース',
+    title: 'アルミ削り出しノベルティサイコロ じゃんけん大会',
+    description: '水戸道楽TV × 有限会社小林製作所｜30名限定！じゃんけんで勝ち残った方にノベルティサイコロをプレゼント！',
+    location: 'イベントステージ',
+    highlight: true,
+    poster: '/schedule/dice-janken.png',
     startMinutes: hm(12, 0),
     endMinutes: hm(13, 0),
   },

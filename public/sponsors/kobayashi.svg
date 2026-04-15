@@ -1,7 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-  <rect width="200" height="200" rx="16" fill="#f5f5f5"/>
-  <text x="100" y="75" text-anchor="middle" fill="#2e3336" font-family="sans-serif" font-weight="bold" font-size="16">有限会社</text>
-  <text x="100" y="110" text-anchor="middle" fill="#2e3336" font-family="sans-serif" font-weight="bold" font-size="22">小林製作所</text>
-  <circle cx="100" cy="155" r="18" fill="none" stroke="#2e3336" stroke-width="2"/>
-  <text x="100" y="161" text-anchor="middle" fill="#2e3336" font-family="sans-serif" font-weight="bold" font-size="16">K</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#ffffff"/>
+  <!-- Circle with K -->
+  <circle cx="200" cy="110" r="60" fill="none" stroke="#e8960c" stroke-width="8"/>
+  <text x="200" y="132" text-anchor="middle" fill="#e8960c" font-family="serif" font-weight="bold" font-size="72">K</text>
+  <!-- 有限会社 -->
+  <text x="200" y="230" text-anchor="middle" fill="#1a1a1a" font-family="'Yu Mincho', 'Hiragino Mincho ProN', serif" font-weight="bold" font-size="38" letter-spacing="8">有限会社</text>
+  <!-- 小林製作所 -->
+  <text x="200" y="310" text-anchor="middle" fill="#1a1a1a" font-family="'Yu Mincho', 'Hiragino Mincho ProN', serif" font-weight="900" font-size="56" letter-spacing="4">小林製作所</text>
 </svg>

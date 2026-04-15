@@ -8,11 +8,20 @@ interface VoteRanking {
   count: number;
 }
 
-// 投票締切: 13:30
+// 投票開始: 9:00 / 締切: 13:30 (当日のみ時間制限)
+const EVENT_DATE = '2026-04-26';
+const VOTE_START = new Date('2026-04-26T09:00:00+09:00');
 const VOTE_DEADLINE = new Date('2026-04-26T13:30:00+09:00');
 
-function isVotingOpen(): boolean {
-  return Date.now() < VOTE_DEADLINE.getTime();
+function getVoteState(): 'before' | 'open' | 'closed' {
+  const now = new Date();
+  const today = now.toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' }); // YYYY-MM-DD
+  // イベント当日のみ時間制限を適用
+  if (today === EVENT_DATE) {
+    if (now.getTime() < VOTE_START.getTime()) return 'before';
+    if (now.getTime() >= VOTE_DEADLINE.getTime()) return 'closed';
+  }
+  return 'open';
 }
 
 const ZONE_IDS = zones.map(z => z.id);
@@ -24,12 +33,38 @@ export default function VotePage() {
   const [filterZone, setFilterZone] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
-  const [votingOpen, setVotingOpen] = useState(isVotingOpen);
+  const msgTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const [voteState, setVoteState] = useState(getVoteState);
   const [myVotes, setMyVotes] = useState<string[]>([]);
   const pb = getPb();
 
+  const showMessage = useCallback((msg: string, duration = 4000) => {
+    clearTimeout(msgTimerRef.current);
+    setMessage(msg);
+    msgTimerRef.current = setTimeout(() => setMessage(''), duration);
+  }, []);
+
+  // 設定チェック: voting_open が true なら強制 open
   useEffect(() => {
-    const timer = setInterval(() => setVotingOpen(isVotingOpen()), 10000);
+    fetch('/api/config')
+      .then(r => r.json())
+      .then((cfg: any) => {
+        if (cfg.voting_open) setVoteState('open');
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // 設定で開いている場合はタイマーで閉じない
+      fetch('/api/config')
+        .then(r => r.json())
+        .then((cfg: any) => {
+          if (cfg.voting_open) { setVoteState('open'); return; }
+          setVoteState(getVoteState());
+        })
+        .catch(() => setVoteState(getVoteState()));
+    }, 15000);
     return () => clearInterval(timer);
   }, []);
 
@@ -77,18 +112,18 @@ export default function VotePage() {
 
   const handleVote = useCallback(async () => {
     if (!zone) {
-      setMessage('ゾーンを選択してください');
+      showMessage('ゾーンを選択してください');
       return;
     }
     const carNumber = `${zone}${number.padStart(3, '0')}`;
     const numVal = parseInt(number);
     if (!number || numVal < 1 || numVal > 999) {
-      setMessage('001〜999の数字を入力してください');
+      showMessage('001〜999の数字を入力してください');
       return;
     }
 
     if (myVotes.includes(carNumber)) {
-      setMessage(`${carNumber} にはすでに投票済みです`);
+      showMessage(`${carNumber} にはすでに投票済みです`);
       setZone('');
       setNumber('');
       return;
@@ -103,16 +138,16 @@ export default function VotePage() {
         device_id: getDeviceId(),
       });
       setMyVotes(prev => [...prev, carNumber]);
-      setMessage(`${carNumber} に投票しました!`);
+      showMessage(`✓ ${carNumber} に投票しました！`);
     } catch (e) {
       console.error('Vote failed:', e);
-      setMessage('投票に失敗しました。もう一度お試しください。');
+      showMessage('投票に失敗しました。もう一度お試しください。', 6000);
     } finally {
       setZone('');
       setNumber('');
       setSubmitting(false);
     }
-  }, [zone, number, myVotes]);
+  }, [zone, number, myVotes, showMessage]);
 
   const filteredRanking = filterZone
     ? ranking.filter(r => r.car_number.startsWith(filterZone))
@@ -121,7 +156,24 @@ export default function VotePage() {
   return (
     <div className="px-5 max-w-lg mx-auto space-y-5">
       {/* 投票フォーム */}
-      {votingOpen ? (
+      {voteState === 'before' ? (
+        <div className="card-elevated text-center py-10">
+          <div className="w-16 h-16 mx-auto rounded-full bg-tertiary-fixed flex-center mb-5">
+            <span className="i-ph-car-profile-duotone text-3xl text-on-tertiary-fixed" />
+          </div>
+          <h2 className="font-display font-800 text-xl text-on-surface mb-2">
+            イベント車両グランプリ
+          </h2>
+          <p className="text-sm text-on-surface-variant mb-5 leading-relaxed">
+            会場内の車に投票できます！<br />
+            好きな車に何台でもOK
+          </p>
+          <div className="inline-flex items-center gap-2 bg-on-surface text-surface rounded-xl px-5 py-3 font-display font-700">
+            <span className="i-ph-clock-countdown-duotone text-lg" />
+            9:00 START
+          </div>
+        </div>
+      ) : voteState === 'open' ? (
         <div className="card-elevated p-6">
           <h2 className="font-display font-700 text-sm text-on-surface mb-4 flex items-center gap-2">
             <div className="w-8 h-8 rounded-full flex-center bg-tertiary-fixed">
@@ -203,8 +255,13 @@ export default function VotePage() {
           </button>
 
           {message && (
-            <p className={`text-xs mt-2 animate-slideInRight ${message.includes('失敗') || message.includes('投票済み') ? 'text-error' : 'text-secondary'}`}>
-              {message.includes('投票しました') && <span className="inline-block vote-success mr-1">✓</span>}
+            <p className={`text-sm font-600 mt-3 px-3 py-2 rounded-xl text-center animate-slideInRight ${
+              message.includes('失敗') || message.includes('投票済み')
+                ? 'text-error bg-error/8'
+                : message.startsWith('✓')
+                  ? 'text-secondary bg-secondary/8'
+                  : 'text-on-surface-variant bg-surface-container'
+            }`}>
               {message}
             </p>
           )}
@@ -242,8 +299,8 @@ export default function VotePage() {
           <div className="flex gap-1">
             <button
               onClick={() => setFilterZone(null)}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-700 tracking-wider uppercase transition-colors ${
-                !filterZone ? 'bg-on-surface text-surface' : 'text-on-surface-variant hover:text-on-surface'
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-700 tracking-wider uppercase transition-all duration-150 ${
+                !filterZone ? 'bg-on-surface text-surface shadow-sm' : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
               }`}
             >
               ALL
@@ -252,8 +309,8 @@ export default function VotePage() {
               <button
                 key={z}
                 onClick={() => setFilterZone(z)}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-700 transition-colors ${
-                  filterZone === z ? 'bg-on-surface text-surface' : 'text-on-surface-variant hover:text-on-surface'
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-700 transition-all duration-150 ${
+                  filterZone === z ? 'bg-on-surface text-surface shadow-sm' : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
                 }`}
               >
                 {z}

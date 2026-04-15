@@ -1,7 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/common/Nav.astro';
-import { zones } from '../data/zones';
+
+const PB_URL = import.meta.env.PUBLIC_PB_URL || 'http://133.18.160.234:8093';
+let mapEvent = false;
+try {
+  const res = await fetch(`${PB_URL}/api/collections/event_config/records?perPage=1`);
+  const data = await res.json();
+  mapEvent = data.items?.[0]?.map_event ?? false;
+} catch {}
+
+const mapSrc = mapEvent ? '/map/venue-map-event.svg' : '/map/venue-map.svg';
 ---
 <Layout title="会場マップ">
   <main class="min-h-screen pb-nav-safe">
@@ -20,37 +29,21 @@ import { zones } from '../data/zones';
     </header>
 
     {/* SVGマップ */}
+    <section class="px-4 mb-6">
+      <div class="relative bg-surface-container-low rounded-2xl overflow-hidden overflow-x-auto -mx-1 shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+        <img src={mapSrc} alt="会場マップ" class="w-full h-auto block" />
+      </div>
+    </section>
+
+    {/* 南ゲート案内 */}
     <section class="px-4 mb-8">
-      <div class="relative bg-surface-container-low rounded-xl overflow-hidden aspect-[4/3] flex-center">
-        <div class="text-center">
-          <span class="i-ph-map-trifold-duotone text-6xl text-on-surface-variant/15 block mb-3" />
-          <p class="text-sm text-on-surface-variant">会場マップ準備中</p>
-          <p class="text-xs text-on-surface-variant/60 mt-1">デザイン完成後に差し替え</p>
-        </div>
-      </div>
+      <a href="https://maps.app.goo.gl/YfQZ7VqJZ3Eo6cV39" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 bg-primary text-on-primary rounded-2xl px-5 py-4 shadow-lg active:scale-98 transition-transform">
+        <span class="i-ph-sign-in-duotone text-2xl shrink-0" />
+        <p class="font-display font-800 text-base tracking-wide">南ゲートからご入場ください</p>
+        <span class="i-ph-arrow-square-out text-lg shrink-0 opacity-70" />
+      </a>
     </section>
 
-    {/* エリア一覧 */}
-    <section class="px-4">
-      <h2 class="font-display font-700 text-lg text-on-surface mb-4 px-2">展示エリア</h2>
-      <div class="space-y-3 max-w-lg mx-auto">
-        {zones.map(zone => (
-          <div class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-xl">
-            <div
-              class="w-10 h-10 rounded-full flex-center font-display font-700 text-lg text-white shrink-0"
-              style={`background-color: ${zone.color}`}
-            >
-              {zone.id}
-            </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="font-display font-700 text-sm text-on-surface">{zone.name}</h3>
-              <p class="text-xs text-on-surface-variant truncate">{zone.description}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
   </main>
-
   <Nav />
 </Layout>

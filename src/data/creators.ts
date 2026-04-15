@@ -114,7 +114,7 @@ export const sponsors: Sponsor[] = [
     description: 'レンタカーサービス。旧車・スポーツカーのレンタルも対応。',
     icon: 'i-ph-car-duotone',
     url: 'https://seiwa-rc.jp',
-    image: '/sponsors/seiwa.svg',
+    image: '/sponsors/seiwa.png',
   },
   {
     name: 'トラスト企画',

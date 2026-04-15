@@ -1,0 +1,122 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const code = Astro.url.searchParams.get('code') ?? '';
+const PB_URL = import.meta.env.PUBLIC_PB_URL || 'http://133.18.160.234:8093';
+
+async function getPbToken(): Promise<string> {
+  const res = await fetch(`${PB_URL}/api/collections/_superusers/auth-with-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      identity: import.meta.env.PB_SUPERUSER_EMAIL,
+      password: import.meta.env.PB_SUPERUSER_PASSWORD,
+    }),
+  });
+  const data = await res.json() as { token?: string };
+  return data.token || '';
+}
+
+const TICKET_LABELS: Record<string, string> = {
+  advance_car: '展示車両チケット（前売り）',
+  advance_general: '一般入場（前売り）',
+  day_general: '一般入場（当日）',
+};
+
+interface TicketRecord {
+  ticket_type: string;
+  quantity: number;
+  child_quantity: number;
+  buyer_name: string;
+  buyer_email: string;
+  payment_id: string;
+  ticket_code: string;
+  created: string;
+}
+
+let ticket: TicketRecord | null = null;
+let error = '';
+
+if (code) {
+  try {
+    const pbToken = await getPbToken();
+    const res = await fetch(
+      `${PB_URL}/api/collections/ticket_purchases/records?filter=ticket_code%3D%22${encodeURIComponent(code)}%22&perPage=1`,
+      { headers: { 'Authorization': pbToken } }
+    );
+    const data = await res.json() as { items?: TicketRecord[]; totalItems?: number };
+    if (data.totalItems && data.totalItems > 0 && data.items?.[0]) {
+      ticket = data.items[0];
+    } else {
+      error = 'チケットが見つかりません';
+    }
+  } catch {
+    error = '確認に失敗しました';
+  }
+}
+---
+<Layout title="チケット確認">
+  <main class="min-h-screen bg-surface flex-center p-6">
+    <div class="w-full max-w-sm">
+
+      {!code && (
+        <div class="text-center space-y-4">
+          <span class="i-ph-qr-code-duotone text-6xl text-on-surface-variant" />
+          <p class="text-on-surface-variant text-sm">チケットQRコードをスキャンしてください</p>
+        </div>
+      )}
+
+      {code && ticket && (
+        <div class="card-elevated p-6 space-y-5 text-center">
+          <div class="w-16 h-16 rounded-full bg-secondary-container flex-center mx-auto">
+            <span class="i-ph-check-circle-duotone text-4xl text-secondary" />
+          </div>
+          <div>
+            <p class="text-xs text-secondary font-700 uppercase tracking-widest mb-1">有効なチケット</p>
+            <h1 class="font-display font-800 text-2xl text-on-surface">{ticket.buyer_name}</h1>
+            <p class="font-mono text-sm text-on-surface-variant mt-1">{ticket.ticket_code}</p>
+          </div>
+
+          <div class="bg-surface-container-low rounded-xl p-4 text-left space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-on-surface-variant">チケット</span>
+              <span class="font-700 text-on-surface">{TICKET_LABELS[ticket.ticket_type] ?? ticket.ticket_type}</span>
+            </div>
+            {ticket.quantity > 0 && (
+              <div class="flex justify-between text-sm">
+                <span class="text-on-surface-variant">大人</span>
+                <span class="font-700 text-on-surface">{ticket.quantity}名</span>
+              </div>
+            )}
+            {ticket.child_quantity > 0 && (
+              <div class="flex justify-between text-sm">
+                <span class="text-on-surface-variant">小学生以下</span>
+                <span class="font-700 text-secondary">{ticket.child_quantity}名（無料）</span>
+              </div>
+            )}
+            <div class="flex justify-between text-xs pt-2 border-t border-outline-variant/20">
+              <span class="text-on-surface-variant">購入日時</span>
+              <span class="text-on-surface-variant">
+                {new Date(ticket.created).toLocaleDateString('ja-JP')}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {code && error && (
+        <div class="card-elevated p-6 space-y-4 text-center">
+          <div class="w-16 h-16 rounded-full bg-error/10 flex-center mx-auto">
+            <span class="i-ph-x-circle-duotone text-4xl text-error" />
+          </div>
+          <div>
+            <p class="text-xs text-error font-700 uppercase tracking-widest mb-1">無効なチケット</p>
+            <p class="text-sm text-on-surface-variant">{error}</p>
+            <p class="font-mono text-xs text-on-surface-variant/50 mt-2">{code}</p>
+          </div>
+        </div>
+      )}
+
+    </div>
+  </main>
+</Layout>

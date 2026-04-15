@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getPb } from '../../lib/pb';
 
 declare global {
   interface Window {
@@ -7,9 +6,7 @@ declare global {
   }
 }
 
-const ADVANCE_CAR_STOCK = 93;
-
-type TicketType = 'advance_car' | 'advance_general' | 'day_general';
+type TicketType = 'day_general';
 type Step = 'select' | 'info' | 'payment' | 'success';
 
 interface TicketConfig {
@@ -18,51 +15,21 @@ interface TicketConfig {
   sublabel: string;
   price: number;
   unit: string;
-  badge: string;
-  badgeClass: string;
   hasQuantity: boolean;
 }
 
-const ALL_TICKETS: TicketConfig[] = [
-  {
-    type: 'advance_car',
-    label: '展示車両チケット',
-    sublabel: '同乗者3名まで無料',
-    price: 8000,
-    unit: '台',
-    badge: '前売り',
-    badgeClass: 'bg-amber-400/15 text-amber-600',
-    hasQuantity: false,
-  },
-  {
-    type: 'advance_general',
-    label: '一般入場（前売り）',
-    sublabel: 'もてぎ入場料・駐車場代込み',
-    price: 1500,
-    unit: '人',
-    badge: '前売り',
-    badgeClass: 'bg-amber-400/15 text-amber-600',
-    hasQuantity: true,
-  },
-  {
-    type: 'day_general',
-    label: '一般入場（当日）',
-    sublabel: 'もてぎ入場料・駐車場代込み',
-    price: 2500,
-    unit: '人',
-    badge: '当日',
-    badgeClass: 'bg-surface-container-high text-on-surface-variant',
-    hasQuantity: true,
-  },
-];
+const TICKET: TicketConfig = {
+  type: 'day_general',
+  label: '一般入場（当日券）',
+  sublabel: 'もてぎ入場料・駐車場代込み',
+  price: 2500,
+  unit: '人',
+  hasQuantity: true,
+};
 
-interface Props {
-  isAdvanceSale: boolean;
-}
-
-export default function TicketForm({ isAdvanceSale }: Props) {
+export default function TicketForm() {
   const [step, setStep] = useState<Step>('select');
-  const [ticketType, setTicketType] = useState<TicketType | null>(null);
+  const ticketType: TicketType = 'day_general';
   const [quantity, setQuantity] = useState(1);
   const [childQuantity, setChildQuantity] = useState(0);
   const [name, setName] = useState('');
@@ -71,41 +38,11 @@ export default function TicketForm({ isAdvanceSale }: Props) {
   const [sqLoading, setSqLoading] = useState(true);
   const [error, setError] = useState('');
   const [orderId, setOrderId] = useState('');
-  const [remainingCar, setRemainingCar] = useState<number | null>(null);
+  const [ticketCode, setTicketCode] = useState('');
 
   const cardRef = useRef<any>(null);
-
-  // 4/20まで: 展示車両 + 一般前売り / 4/21から: 一般入場（当日）のみ
-  const tickets = ALL_TICKETS.filter(t => {
-    if (t.type === 'advance_car') return isAdvanceSale;
-    if (t.type === 'advance_general') return isAdvanceSale;
-    if (t.type === 'day_general') return !isAdvanceSale;
-    return false;
-  });
-  const selectedTicket = tickets.find(t => t.type === ticketType);
-  const total = selectedTicket ? selectedTicket.price * quantity : 0;
-
-  // 展示車両チケット残枚数をPocketBaseから取得・購読
-  useEffect(() => {
-    if (!isAdvanceSale) return;
-    const pb = getPb();
-
-    async function fetchStock() {
-      try {
-        const result = await pb.collection('ticket_purchases').getList(1, 1, {
-          filter: 'ticket_type = "advance_car"',
-          fields: 'id',
-        });
-        setRemainingCar(Math.max(0, ADVANCE_CAR_STOCK - result.totalItems));
-      } catch {
-        setRemainingCar(ADVANCE_CAR_STOCK);
-      }
-    }
-
-    fetchStock();
-    const unsub = pb.collection('ticket_purchases').subscribe('*', fetchStock);
-    return () => { unsub.then(fn => fn()); };
-  }, [isAdvanceSale]);
+  const selectedTicket = TICKET;
+  const total = TICKET.price * quantity;
 
   // Square Web Payments SDK のロード & アタッチ
   useEffect(() => {
@@ -156,14 +93,11 @@ export default function TicketForm({ isAdvanceSale }: Props) {
           },
           '.message-text': {
             color: '#a83836',
-            fontSize: '11px',
           },
           input: {
-            fontFamily: 'Plus Jakarta Sans, sans-serif',
-            fontSize: '15px',
             color: '#2e3336',
           },
-          '::placeholder': {
+          'input::placeholder': {
             color: '#aeb2b6',
           },
         },
@@ -193,8 +127,11 @@ export default function TicketForm({ isAdvanceSale }: Props) {
     };
   }, [step]);
 
+  const submittingRef = useRef(false);
+
   const handlePayment = useCallback(async () => {
-    if (!cardRef.current || loading) return;
+    if (!cardRef.current || loading || submittingRef.current) return;
+    submittingRef.current = true;
     setLoading(true);
     setError('');
 
@@ -207,6 +144,7 @@ export default function TicketForm({ isAdvanceSale }: Props) {
           'カード情報の確認に失敗しました';
         setError(msg);
         setLoading(false);
+        submittingRef.current = false;
         return;
       }
 
@@ -233,25 +171,30 @@ export default function TicketForm({ isAdvanceSale }: Props) {
       }
 
       setOrderId(data.orderId || '');
+      setTicketCode(data.ticketCode || '');
       setStep('success');
     } catch {
       setError('通信エラーが発生しました。もう一度お試しください。');
       setLoading(false);
+      submittingRef.current = false;
     }
   }, [loading, ticketType, quantity, childQuantity, name, email, total]);
 
   // ── 完了画面 ──────────────────────────────────
   if (step === 'success') {
     return (
-      <div className="card-elevated text-center py-8 px-4 animate-scaleIn">
+      <div className="card-elevated text-center py-8 px-4 animate-scaleIn ticket-success-screen">
         <div className="w-16 h-16 rounded-full bg-secondary-container flex-center mx-auto mb-4">
           <span className="i-ph-check-circle-duotone text-4xl text-secondary" />
         </div>
         <h2 className="font-display font-800 text-xl text-on-surface mb-1">
           購入完了！
         </h2>
-        <p className="text-xs text-on-surface-variant mb-5">
+        <p className="text-xs text-on-surface-variant mb-2">
           ご登録のメールアドレスに確認メールをお送りしました
+        </p>
+        <p className="text-[10px] text-on-surface-variant/60 mb-5">
+          このページをスクリーンショットで保存してください
         </p>
         <div className="bg-surface-container-low rounded-xl p-4 text-left space-y-2 mb-4">
           <div className="flex justify-between text-sm">
@@ -277,8 +220,19 @@ export default function TicketForm({ isAdvanceSale }: Props) {
             </span>
           </div>
         </div>
+        {ticketCode && (
+          <div className="mt-4 space-y-3">
+            <img
+              src={`/api/qr/${ticketCode}.png`}
+              alt="入場QRコード"
+              className="w-40 h-40 mx-auto rounded-xl border border-outline-variant/20"
+            />
+            <p className="font-mono font-800 text-lg tracking-widest text-on-surface">{ticketCode}</p>
+            <p className="text-[10px] text-on-surface-variant">このQRコードを入場時にご提示ください</p>
+          </div>
+        )}
         {orderId && (
-          <p className="text-[10px] text-on-surface-variant font-mono">
+          <p className="text-[10px] text-on-surface-variant font-mono mt-2">
             注文番号: {orderId}
           </p>
         )}
@@ -307,146 +261,90 @@ export default function TicketForm({ isAdvanceSale }: Props) {
         ))}
       </div>
 
-      {/* ═══════════════════════════════════════ STEP 1 */}
+      {/* ═══════════════════════════════════════ STEP 1: 枚数選択 */}
       {step === 'select' && (
         <div className="space-y-3">
-          <div className="flex items-baseline justify-between px-0.5">
-            <p className="label-upper text-on-surface-variant">チケット選択</p>
-            {isAdvanceSale && (
-              <p className="text-[10px] text-on-surface-variant">前売り: 4/20（月）23:59 まで</p>
-            )}
+          <p className="label-upper text-on-surface-variant px-0.5">枚数を選択</p>
+
+          {/* チケット情報 */}
+          <div className="p-4 rounded-xl border-2 border-on-surface bg-surface-container">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-display font-700 text-sm text-on-surface">{TICKET.label}</p>
+                <p className="text-[10px] text-on-surface-variant mt-0.5">{TICKET.sublabel}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="font-display font-800 text-2xl tracking-tight text-on-surface">
+                  ¥{TICKET.price.toLocaleString()}
+                </span>
+                <span className="text-xs text-on-surface-variant">/{TICKET.unit}</span>
+              </div>
+            </div>
           </div>
 
-          {tickets.map(ticket => {
-            const isCar = ticket.type === 'advance_car';
-            const soldOut = isCar && remainingCar === 0;
-            const stockColor =
-              remainingCar === null ? 'text-on-surface-variant' :
-              remainingCar <= 10 ? 'text-error font-800' :
-              remainingCar <= 20 ? 'text-amber-600 font-700' :
-              'text-secondary font-700';
-
-            return (
-              <button
-                key={ticket.type}
-                onClick={() => {
-                  if (soldOut) return;
-                  setTicketType(ticket.type);
-                  if (!ticket.hasQuantity) { setQuantity(1); setChildQuantity(0); }
-                }}
-                disabled={soldOut}
-                className={`w-full p-4 rounded-xl border-2 flex items-center justify-between gap-3 text-left transition-all duration-150 ${
-                  soldOut
-                    ? 'opacity-50 cursor-not-allowed border-outline-variant/20 bg-surface-container-low'
-                    : ticketType === ticket.type
-                    ? 'border-on-surface bg-surface-container active:scale-[0.98]'
-                    : 'border-outline-variant/30 bg-surface-container-lowest hover:border-outline-variant active:scale-[0.98]'
-                }`}
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className={`text-[9px] tracking-widest font-700 uppercase px-1.5 py-px rounded ${ticket.badgeClass}`}>
-                      {ticket.badge}
-                    </span>
-                    {soldOut && (
-                      <span className="text-[9px] font-700 px-1.5 py-px rounded bg-error/10 text-error">完売</span>
-                    )}
-                    {!soldOut && ticketType === ticket.type && (
-                      <span className="i-ph-check-circle-fill text-sm text-secondary" />
-                    )}
-                  </div>
-                  <p className="font-display font-700 text-sm text-on-surface leading-tight">
-                    {ticket.label}
-                  </p>
-                  <p className="text-[10px] text-on-surface-variant mt-0.5">
-                    {ticket.sublabel}
-                  </p>
-                  {isCar && remainingCar !== null && (
-                    <p className={`text-[10px] mt-1 ${stockColor}`}>
-                      残り {remainingCar} 枚
-                    </p>
-                  )}
-                  {isCar && remainingCar === null && (
-                    <p className="text-[10px] text-on-surface-variant/40 mt-1">在庫確認中...</p>
-                  )}
-                </div>
-                <div className="text-right shrink-0">
-                  <span className="font-display font-800 text-2xl tracking-tight text-on-surface">
-                    ¥{ticket.price.toLocaleString()}
-                  </span>
-                  <span className="text-xs text-on-surface-variant">/{ticket.unit}</span>
-                </div>
-              </button>
-            );
-          })}
-
           {/* 枚数セレクター */}
-          {ticketType && selectedTicket?.hasQuantity && (
-            <div className="bg-surface-container-low rounded-xl p-4 space-y-3">
-              {/* 大人 */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-600 text-on-surface">大人</span>
-                  <span className="text-[10px] text-on-surface-variant ml-1.5">¥{selectedTicket.price.toLocaleString()}/人</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    className="w-9 h-9 rounded-full bg-surface-container-high flex-center active:scale-90 transition-transform"
-                  >
-                    <span className="i-ph-minus-bold text-sm text-on-surface" />
-                  </button>
-                  <span className="font-display font-800 text-2xl w-6 text-center text-on-surface tabular-nums">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(q => Math.min(10, q + 1))}
-                    className="w-9 h-9 rounded-full bg-surface-container-high flex-center active:scale-90 transition-transform"
-                  >
-                    <span className="i-ph-plus-bold text-sm text-on-surface" />
-                  </button>
-                </div>
+          <div className="bg-surface-container-low rounded-xl p-4 space-y-3">
+            {/* 大人 */}
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-sm font-600 text-on-surface">大人</span>
+                <span className="text-[10px] text-on-surface-variant ml-1.5">¥{TICKET.price.toLocaleString()}/人</span>
               </div>
-              {/* 小学生以下 */}
-              <div className="flex items-center justify-between border-t border-outline-variant/20 pt-3">
-                <div>
-                  <span className="text-sm font-600 text-on-surface">小学生以下</span>
-                  <span className="text-[10px] text-secondary font-700 ml-1.5">無料</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => setChildQuantity(q => Math.max(0, q - 1))}
-                    className="w-9 h-9 rounded-full bg-surface-container-high flex-center active:scale-90 transition-transform"
-                  >
-                    <span className="i-ph-minus-bold text-sm text-on-surface" />
-                  </button>
-                  <span className="font-display font-800 text-2xl w-6 text-center text-on-surface tabular-nums">{childQuantity}</span>
-                  <button
-                    onClick={() => setChildQuantity(q => Math.min(10, q + 1))}
-                    className="w-9 h-9 rounded-full bg-surface-container-high flex-center active:scale-90 transition-transform"
-                  >
-                    <span className="i-ph-plus-bold text-sm text-on-surface" />
-                  </button>
-                </div>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  className="w-9 h-9 rounded-full bg-surface-container-high flex-center active:scale-90 transition-transform"
+                >
+                  <span className="i-ph-minus-bold text-sm text-on-surface" />
+                </button>
+                <span className="font-display font-800 text-2xl w-6 text-center text-on-surface tabular-nums">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(q => Math.min(10, q + 1))}
+                  className="w-9 h-9 rounded-full bg-surface-container-high flex-center active:scale-90 transition-transform"
+                >
+                  <span className="i-ph-plus-bold text-sm text-on-surface" />
+                </button>
               </div>
             </div>
-          )}
+            {/* 小学生以下 */}
+            <div className="flex items-center justify-between border-t border-outline-variant/20 pt-3">
+              <div>
+                <span className="text-sm font-600 text-on-surface">小学生以下</span>
+                <span className="text-[10px] text-secondary font-700 ml-1.5">無料</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setChildQuantity(q => Math.max(0, q - 1))}
+                  className="w-9 h-9 rounded-full bg-surface-container-high flex-center active:scale-90 transition-transform"
+                >
+                  <span className="i-ph-minus-bold text-sm text-on-surface" />
+                </button>
+                <span className="font-display font-800 text-2xl w-6 text-center text-on-surface tabular-nums">{childQuantity}</span>
+                <button
+                  onClick={() => setChildQuantity(q => Math.min(10, q + 1))}
+                  className="w-9 h-9 rounded-full bg-surface-container-high flex-center active:scale-90 transition-transform"
+                >
+                  <span className="i-ph-plus-bold text-sm text-on-surface" />
+                </button>
+              </div>
+            </div>
+          </div>
 
-          {ticketType && (
-            <div>
-              <div className="flex items-baseline justify-between mb-3 px-0.5">
-                <span className="text-xs text-on-surface-variant">合計金額</span>
-                <span className="font-display font-800 text-2xl text-on-surface">
-                  ¥{total.toLocaleString()}
-                </span>
-              </div>
-              <button
-                onClick={() => setStep('info')}
-                className="btn-primary w-full h-12 text-sm flex-center gap-1.5"
-              >
-                次へ
-                <span className="i-ph-arrow-right-bold text-base" />
-              </button>
+          <div>
+            <div className="flex items-baseline justify-between mb-3 px-0.5">
+              <span className="text-xs text-on-surface-variant">合計金額</span>
+              <span className="font-display font-800 text-2xl text-on-surface">
+                ¥{total.toLocaleString()}
+              </span>
             </div>
-          )}
+            <button
+              onClick={() => setStep('info')}
+              className="btn-primary w-full h-12 text-sm flex-center gap-1.5"
+            >
+              次へ
+              <span className="i-ph-arrow-right-bold text-base" />
+            </button>
+          </div>
         </div>
       )}
 
@@ -526,7 +424,7 @@ export default function TicketForm({ isAdvanceSale }: Props) {
                 setError('お名前を入力してください');
                 return;
               }
-              if (!email.trim() || !email.includes('@')) {
+              if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
                 setError('正しいメールアドレスを入力してください');
                 return;
               }

@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-  <rect width="200" height="200" rx="16" fill="#0d5c2e"/>
-  <text x="100" y="72" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold" font-size="16">レンタカーズ</text>
-  <text x="100" y="120" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold" font-size="36" letter-spacing="3">SEIWA</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <rect width="400" height="300" rx="0" fill="#e8edf2"/>
+  <text x="200" y="100" text-anchor="middle" fill="#2e8bc0" font-family="sans-serif" font-weight="bold" font-size="28" letter-spacing="6">レンタカーズ</text>
+  <text x="200" y="190" text-anchor="middle" fill="#2e8bc0" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="90" font-style="italic" letter-spacing="2">
+    <tspan>SE</tspan><tspan font-size="72">i</tspan><tspan>WA</tspan>
+  </text>
 </svg>

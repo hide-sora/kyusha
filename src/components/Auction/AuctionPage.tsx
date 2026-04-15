@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { getPb } from '../../lib/pb';
-import { getDeviceId } from '../../lib/deviceId';
+import AuctionPayment from './AuctionPayment';
 
 interface AuctionItem {
   id: string;
@@ -12,13 +12,6 @@ interface AuctionItem {
   status: 'upcoming' | 'live' | 'ended';
   start_time: string;
   image?: string;
-}
-
-interface Bid {
-  id: string;
-  amount: number;
-  bidder_name: string;
-  created: string;
 }
 
 function formatYen(n: number) {
@@ -73,143 +66,57 @@ function ItemCard({
 }
 
 function BidPanel({ item }: { item: AuctionItem }) {
-  const [bids, setBids] = useState<Bid[]>([]);
-  const [bidAmount, setBidAmount] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
-  const pb = getPb();
-
-  useEffect(() => {
-    pb.collection('auction_bids')
-      .getList(1, 20, {
-        filter: `item = "${item.id}"`,
-        sort: '-amount',
-      })
-      .then(res => setBids(res.items as unknown as Bid[]))
-      .catch(() => {});
-
-    const unsub = pb.collection('auction_bids').subscribe('*', (e) => {
-      if (e.action === 'create') {
-        const bid = e.record as unknown as Bid;
-        setBids(prev => [bid, ...prev].sort((a, b) => b.amount - a.amount).slice(0, 20));
-      }
-    });
-
-    return () => { unsub.then(fn => fn()); };
-  }, [item.id]);
-
-  const handleBid = useCallback(async () => {
-    setError('');
-    const amount = parseInt(bidAmount);
-    if (!amount || amount <= (item.current_price || item.start_price)) {
-      setError(`現在の価格 ${formatYen(item.current_price || item.start_price)} より高い金額を入力してください`);
-      return;
-    }
-    if (!nickname.trim()) {
-      setError('ニックネームを入力してください');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      await pb.collection('auction_bids').create({
-        item: item.id,
-        amount,
-        bidder_name: nickname.trim(),
-        device_id: getDeviceId(),
-      });
-      setBidAmount('');
-    } catch (e: any) {
-      setError('入札に失敗しました。もう一度お試しください。');
-    } finally {
-      setSubmitting(false);
-    }
-  }, [bidAmount, nickname, item]);
-
-  const minBid = (item.current_price || item.start_price) + 100;
+  const [showPayment, setShowPayment] = useState(false);
 
   return (
     <div className="mt-4 space-y-4">
       {/* 現在の最高額 */}
       <div className="text-center py-5 bg-surface-container-lowest rounded-xl shadow-[0_20px_40px_rgba(46,51,54,0.06)]">
-        <p className="text-[10px] tracking-widest font-700 uppercase text-on-surface-variant mb-1">現在の最高額</p>
+        <p className="text-[10px] tracking-widest font-700 uppercase text-on-surface-variant mb-1">
+          {item.status === 'ended' ? '落札価格' : '現在の価格'}
+        </p>
         <p className="font-display font-800 text-3xl text-on-surface">
           {formatYen(item.current_price || item.start_price)}
         </p>
       </div>
 
-      {/* 入札フォーム */}
       {item.status === 'live' && (
-        <div className="space-y-3">
-          <input
-            type="text"
-            placeholder="ニックネーム"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            className="w-full bg-surface-container-highest rounded-xl px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-            maxLength={20}
-          />
-          <div className="flex gap-2">
-            <input
-              type="number"
-              placeholder={`${formatYen(minBid)}〜`}
-              value={bidAmount}
-              onChange={(e) => setBidAmount(e.target.value)}
-              className="flex-1 bg-surface-container-highest rounded-xl px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none focus:ring-2 focus:ring-primary/30 transition-all tabular-nums"
-              min={minBid}
-              step={100}
-            />
-            <button
-              onClick={handleBid}
-              disabled={submitting}
-              className="btn-primary px-5 shrink-0 disabled:opacity-50 text-sm"
-            >
-              {submitting ? '...' : '入札'}
-            </button>
-          </div>
-          {/* クイック入札ボタン */}
-          <div className="flex gap-2 flex-wrap">
-            {[100, 500, 1000, 5000].map(inc => (
-              <button
-                key={inc}
-                onClick={() => setBidAmount(String((item.current_price || item.start_price) + inc))}
-                className="px-3 py-1.5 bg-surface-container-high rounded-xl text-xs font-600 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200 active:scale-90"
-              >
-                +{formatYen(inc)}
-              </button>
-            ))}
-          </div>
-          {error && <p className="text-xs text-error">{error}</p>}
+        <div className="text-center py-4 bg-surface-container-low rounded-xl">
+          <span className="i-ph-megaphone-duotone text-2xl text-on-surface-variant/30 block mb-2" />
+          <p className="text-sm font-700 text-on-surface">会場にて入札受付中！</p>
+          <p className="text-xs text-on-surface-variant mt-1">メインステージへお越しください</p>
         </div>
       )}
 
       {item.status === 'upcoming' && (
-        <div className="text-center py-6">
-          <span className="i-ph-clock-countdown-duotone text-4xl text-on-surface-variant/20 block mb-2" />
+        <div className="text-center py-4 bg-surface-container-low rounded-xl">
+          <span className="i-ph-clock-countdown-duotone text-2xl text-on-surface-variant/30 block mb-2" />
           <p className="text-sm text-on-surface-variant">オークション開始までお待ちください</p>
         </div>
       )}
 
-      {/* 入札履歴 */}
-      {bids.length > 0 && (
-        <div>
-          <h4 className="text-[10px] font-700 text-on-surface-variant uppercase tracking-widest mb-2">入札履歴</h4>
-          <div className="space-y-1.5">
-            {bids.slice(0, 10).map((bid, i) => (
-              <div
-                key={bid.id}
-                className={`flex justify-between items-center px-4 py-2.5 rounded-xl text-sm ${
-                  i === 0 ? 'bg-surface-container-lowest shadow-[0_10px_20px_rgba(46,51,54,0.04)] text-on-surface' : 'bg-surface-container-low text-on-surface-variant'
-                }`}
-              >
-                <span className="font-500">{bid.bidder_name}</span>
-                <span className="font-display font-700 tabular-nums">{formatYen(bid.amount)}</span>
-              </div>
-            ))}
+      {item.status === 'ended' && !showPayment && (
+        <div className="space-y-3">
+          <div className="text-center py-4 bg-surface-container-low rounded-xl">
+            <span className="i-ph-trophy-duotone text-2xl text-amber-500 block mb-2" />
+            <p className="text-sm font-700 text-on-surface">オークション終了</p>
           </div>
+          <button
+            onClick={() => setShowPayment(true)}
+            className="btn-primary w-full h-12 text-sm flex-center gap-1.5"
+          >
+            <span className="i-ph-credit-card-bold text-base" />
+            お支払いへ進む
+          </button>
         </div>
+      )}
+
+      {item.status === 'ended' && showPayment && (
+        <AuctionPayment
+          itemId={item.id}
+          itemTitle={item.title}
+          amount={item.current_price || item.start_price}
+        />
       )}
     </div>
   );

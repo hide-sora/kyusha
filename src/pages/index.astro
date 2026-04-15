@@ -3,10 +3,6 @@ import Layout from '../layouts/Layout.astro';
 import Nav from '../components/common/Nav.astro';
 import Countdown from '../components/Countdown';
 import { creators, sponsors } from '../data/creators';
-import { zones } from '../data/zones';
-
-const totalCars = zones.reduce((sum, z) => sum + z.carCount, 0);
-const activeZones = zones.filter(z => z.carCount > 0);
 
 const galleryPhotos = [
   'S__14049354.jpg', 'S__14049356_0.jpg', 'S__14049357_0.jpg',
@@ -101,7 +97,7 @@ const galleryPhotos = [
               <div class="flex flex-col items-center gap-2 card-base p-3 rounded-2xl card-press reveal text-center cursor-pointer" data-profile data-name={s.name} data-desc={s.description} data-img={s.image || ''} data-subs={s.subscribers || ''} data-url={s.url || ''} data-channel={s.booth || ''}>
                 <div class="w-18 h-18 rounded-xl overflow-hidden bg-surface-container-highest shrink-0">
                   {s.image ? (
-                    <img src={s.image} alt={s.name} class="w-full h-full object-cover" loading="lazy" />
+                    <img src={s.image} alt={s.name} class="w-full h-full object-contain" loading="lazy" />
                   ) : (
                     <div class="w-full h-full flex-center">
                       <span class:list={[s.icon, 'text-2xl text-on-surface-variant']} />
@@ -161,28 +157,6 @@ const galleryPhotos = [
               <h3 class="font-display font-800 text-2xl tracking-tight leading-tight mb-2">車両グランプリ<br/>投票</h3>
               <p class="text-sm opacity-70">好きな車に投票できます。何台でもOK！</p>
 
-              {/* 展示車両情報 */}
-              <div class="mt-4 pt-4 border-t border-white/15">
-                <p class="text-[10px] opacity-50 mb-1">集結する車 なんと...</p>
-                <div class="flex items-baseline gap-2 mb-2.5">
-                  <span class="font-display font-800 text-4xl tracking-tighter">{totalCars}</span>
-                  <span class="text-sm opacity-70">台</span>
-                </div>
-                <div class="flex rounded-full overflow-hidden h-2 bar-grow">
-                  {activeZones.map(zone => (
-                    <div style={`flex: ${zone.carCount}; background-color: ${zone.color}`} />
-                  ))}
-                </div>
-                <div class="flex justify-between mt-2">
-                  {activeZones.map(zone => (
-                    <div class="flex items-center gap-1">
-                      <div class="w-1.5 h-1.5 rounded-full shrink-0" style={`background-color: ${zone.color}`} />
-                      <span class="text-[9px] opacity-60 font-600">{zone.id}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <div class="flex items-center gap-1.5 mt-4 opacity-50">
                 <span class="text-xs font-600">投票する</span>
                 <span class="i-ph-arrow-right-bold text-sm" />
@@ -210,7 +184,7 @@ const galleryPhotos = [
         </div>
         {/* ギャラリーモーダル */}
         <div id="gallery-modal" class="fixed inset-0 z-[70] flex-center pointer-events-none" style="background:rgba(0,0,0,0);transition:background 0.25s ease">
-          <button id="gallery-close" class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/15 flex-center text-white text-xl cursor-pointer opacity-0 transition-opacity duration-250">&times;</button>
+          <button id="gallery-close" class="absolute top-5 right-5 w-12 h-12 rounded-full bg-white/20 flex-center text-white text-2xl cursor-pointer opacity-0 transition-opacity duration-250">&times;</button>
           <button id="gallery-prev" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 flex-center text-white text-xl cursor-pointer opacity-0 transition-opacity duration-250"><span class="i-ph-caret-left-bold" /></button>
           <button id="gallery-next" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 flex-center text-white text-xl cursor-pointer opacity-0 transition-opacity duration-250"><span class="i-ph-caret-right-bold" /></button>
           <img id="gallery-modal-img" src="" alt="" class="max-w-[92vw] max-h-[85vh] object-contain rounded-xl opacity-0 transition-all duration-250" style="transform:scale(0.92)" />
@@ -290,8 +264,8 @@ const galleryPhotos = [
           <div class="flex items-start gap-3">
             <span class="i-ph-car-profile-duotone text-base text-on-surface-variant mt-0.5 shrink-0" />
             <div>
-              <p class="font-display font-600 text-on-surface">展示車両 247台 / 全6エリア</p>
-              <p class="text-on-surface-variant text-xs mt-0.5">A〜E + 茨城ゾーン</p>
+              <p class="font-display font-600 text-on-surface">全6エリア</p>
+              <p class="text-on-surface-variant text-xs mt-0.5">A〜E + 茨城友の会</p>
             </div>
           </div>
         </div>
@@ -313,6 +287,30 @@ const galleryPhotos = [
         <span class="i-ph-caret-right-bold text-on-surface-variant text-sm" />
       </a>
     </section>
+
+    {/* 特定商取引法に基づく表記 */}
+    <footer class="px-5 pb-8">
+      <div class="max-w-lg mx-auto">
+        <details class="text-on-surface-variant">
+          <summary class="flex items-center justify-center gap-1 text-[11px] cursor-pointer py-3">
+            <span class="i-ph-scales-duotone text-sm" />
+            <span>特定商取引法に基づく表記</span>
+            <span class="i-ph-caret-down text-[10px] details-arrow transition-transform duration-200" />
+          </summary>
+          <div class="text-[11px] leading-relaxed space-y-1.5 pb-4">
+            <p><span class="text-on-surface-variant/60">会社名：</span>安藏商事合同会社</p>
+            <p><span class="text-on-surface-variant/60">代表者名：</span>安藏直幸</p>
+            <p><span class="text-on-surface-variant/60">住所：</span>茨城県水戸市堀町2317-1</p>
+            <p><span class="text-on-surface-variant/60">メール：</span><a href="mailto:mitodouraku@gmail.com" class="underline underline-offset-2">mitodouraku@gmail.com</a></p>
+            <p><span class="text-on-surface-variant/60">販売価格：</span>商品販売ページに記載</p>
+            <p><span class="text-on-surface-variant/60">商品代金以外の必要料金：</span>銀行振込手数料（銀行振込の場合）、インターネット接続料金その他の電気通信回線の通信に関する費用</p>
+            <p><span class="text-on-surface-variant/60">引渡し時期：</span>決済完了後、直ちにご利用いただけます</p>
+            <p><span class="text-on-surface-variant/60">返品・返金：</span>返品・返金はお受けしておりません</p>
+            <p><span class="text-on-surface-variant/60">プライバシーポリシー：</span><a href="https://mito-douraku.com/privacypolicy/" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">こちら</a></p>
+          </div>
+        </details>
+      </div>
+    </footer>
 
   </main>
 
