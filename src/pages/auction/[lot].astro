@@ -1,0 +1,354 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/common/Nav.astro';
+import { showcaseItems } from '../../data/auctionShowcase';
+
+export const prerender = true;
+
+export function getStaticPaths() {
+  return showcaseItems.map(item => ({
+    params: { lot: String(item.lot).padStart(2, '0') },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props;
+const lotStr = String(item.lot).padStart(2, '0');
+const hasImages = item.images && item.images.length > 0;
+---
+<Layout title={`LOT ${lotStr} ${item.title}`}>
+  <main class="min-h-screen pb-nav-safe bg-surface">
+
+    {/* ヒーロー：大きな写真 */}
+    <section class="relative">
+      <div class="relative max-w-lg mx-auto">
+        {hasImages ? (
+          <div class="relative aspect-[4/3] overflow-hidden" id="hero-carousel">
+            {item.images!.map((src, i) => (
+              <img
+                src={src}
+                alt={`${item.title} ${i + 1}`}
+                class:list={['hero-img absolute inset-0 w-full h-full object-cover transition-opacity duration-500', i === 0 ? 'opacity-100' : 'opacity-0']}
+                data-idx={i}
+              />
+            ))}
+            <div class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+
+            {/* LOT Badge + Back */}
+            <a
+              href="/auction"
+              class="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex-center text-white active:scale-90 transition-transform"
+              aria-label="戻る"
+            >
+              <span class="i-ph-arrow-left-bold text-lg" />
+            </a>
+            <div class="absolute top-4 right-4">
+              <span class="bg-amber-500 text-black text-[10px] font-800 tracking-[0.2em] uppercase px-3 py-1.5 rounded-lg font-display shadow-lg">
+                LOT {lotStr}
+              </span>
+            </div>
+
+            {/* Dots */}
+            {item.images!.length > 1 && (
+              <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10" id="hero-dots">
+                {item.images!.map((_, i) => (
+                  <button
+                    type="button"
+                    data-dot={i}
+                    class:list={['w-1.5 h-1.5 rounded-full transition-all cursor-pointer', i === 0 ? 'bg-white w-5' : 'bg-white/50']}
+                    aria-label={`画像 ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* 画像タップで拡大 */}
+            <button type="button" id="hero-expand" class="absolute inset-0 w-full h-full cursor-zoom-in" aria-label="画像を拡大" />
+          </div>
+        ) : (
+          <div class="aspect-[4/3] flex-center" style={`background: ${item.gradient}`}>
+            <span class:list={[item.icon, 'text-white/20 text-[10rem]']} />
+          </div>
+        )}
+      </div>
+    </section>
+
+    {/* タイトル・YouTuber */}
+    <section class="px-5 pt-6 max-w-lg mx-auto">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="i-ph-youtube-logo-duotone text-error text-base" />
+        <span class="text-xs font-700 text-on-surface-variant">{item.youtuber}</span>
+      </div>
+      <h1 class="font-display font-800 text-3xl text-on-surface leading-tight tracking-tight mb-3">
+        {item.title}
+      </h1>
+      <p class="text-sm text-on-surface-variant leading-relaxed whitespace-pre-line">
+        {item.longDescription || item.description}
+      </p>
+    </section>
+
+    {/* 最低落札価格 */}
+    {item.startPrice > 0 && (
+      <section class="px-5 mt-6 max-w-lg mx-auto">
+        <div class="bg-on-surface text-surface rounded-2xl p-5 relative overflow-hidden">
+          <div class="absolute right-[-20px] top-[-20px] w-24 h-24 rounded-full bg-white/5" />
+          <div class="relative z-10">
+            <p class="text-[10px] tracking-[0.3em] font-700 uppercase text-amber-400/80 mb-1">Starting Price</p>
+            <p class="font-display font-800 text-3xl tabular-nums text-amber-400">
+              ¥{item.startPrice.toLocaleString()}
+            </p>
+            <p class="text-xs text-white/50 mt-1">最低落札価格（この価格からスタート）</p>
+          </div>
+        </div>
+      </section>
+    )}
+
+    {/* ハイライト */}
+    {item.highlights && item.highlights.length > 0 && (
+      <section class="px-5 mt-6 max-w-lg mx-auto">
+        <h2 class="font-display font-700 text-sm text-on-surface flex items-center gap-2 mb-3">
+          <div class="w-7 h-7 rounded-full flex-center bg-tertiary-fixed">
+            <span class="i-ph-star-duotone text-sm text-on-tertiary-fixed" />
+          </div>
+          セールスポイント
+        </h2>
+        <ul class="card-tonal space-y-2.5">
+          {item.highlights.map(h => (
+            <li class="flex items-start gap-2.5 text-sm text-on-surface">
+              <span class="i-ph-check-circle-duotone text-base text-secondary mt-0.5 shrink-0" />
+              <span class="leading-relaxed">{h}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {/* スペック */}
+    {item.specs && item.specs.length > 0 && (
+      <section class="px-5 mt-6 max-w-lg mx-auto">
+        <h2 class="font-display font-700 text-sm text-on-surface flex items-center gap-2 mb-3">
+          <div class="w-7 h-7 rounded-full flex-center bg-secondary-fixed">
+            <span class="i-ph-list-bullets-duotone text-sm text-on-secondary-fixed" />
+          </div>
+          スペック
+        </h2>
+        <div class="card-tonal divide-y divide-outline-variant/20">
+          {item.specs.map(s => (
+            <div class="flex items-center justify-between py-2.5 first:pt-0 last:pb-0 text-sm">
+              <span class="text-on-surface-variant">{s.label}</span>
+              <span class="font-700 text-on-surface text-right">{s.value}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {/* セット商品 */}
+    {item.subItems && item.subItems.length > 0 && (
+      <section class="px-5 mt-6 max-w-lg mx-auto">
+        <h2 class="font-display font-700 text-sm text-on-surface flex items-center gap-2 mb-3">
+          <div class="w-7 h-7 rounded-full flex-center bg-tertiary-fixed">
+            <span class="i-ph-package-duotone text-sm text-on-tertiary-fixed" />
+          </div>
+          セット内容
+        </h2>
+        <div class="space-y-2.5">
+          {item.subItems.map(s => (
+            <div class="card-tonal flex items-start gap-3">
+              <div class="w-10 h-10 rounded-xl flex-center bg-surface-container-high shrink-0">
+                <span class:list={[s.icon || 'i-ph-package-duotone', 'text-lg text-on-surface']} />
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="font-display font-700 text-sm text-on-surface mb-0.5">{s.title}</p>
+                <p class="text-xs text-on-surface-variant leading-relaxed">{s.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {/* 備考 */}
+    {item.notes && item.notes.length > 0 && (
+      <section class="px-5 mt-6 max-w-lg mx-auto">
+        <h2 class="font-display font-700 text-sm text-on-surface flex items-center gap-2 mb-3">
+          <div class="w-7 h-7 rounded-full flex-center bg-surface-container-high">
+            <span class="i-ph-info-duotone text-sm text-on-surface-variant" />
+          </div>
+          ご注意
+        </h2>
+        <ul class="card-tonal space-y-2">
+          {item.notes.map(n => (
+            <li class="flex items-start gap-2 text-xs text-on-surface-variant leading-relaxed">
+              <span class="i-ph-warning-circle-duotone text-sm shrink-0 mt-0.5" />
+              <span>{n}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {/* CTA */}
+    <section class="px-5 mt-8 mb-8 max-w-lg mx-auto">
+      <div class="card-tonal text-center">
+        <div class="w-12 h-12 rounded-full bg-tertiary-fixed flex-center mx-auto mb-3">
+          <span class="i-ph-gavel-duotone text-xl text-on-tertiary-fixed" />
+        </div>
+        <p class="font-display font-800 text-lg text-on-surface mb-1">オークション参加方法</p>
+        <p class="text-xs text-on-surface-variant leading-relaxed mb-4">
+          4/26（日）13:00〜 イベントステージにて開催！<br />
+          会場にお越しの上、アプリから入札いただけます。
+        </p>
+        <div class="flex gap-2">
+          <a href="/auction" class="flex-1 btn-secondary h-11 text-xs flex-center gap-1">
+            <span class="i-ph-list-bullets-bold text-sm" />
+            一覧に戻る
+          </a>
+          <a href="/ticket" class="flex-1 btn-primary h-11 text-xs flex-center gap-1">
+            <span class="i-ph-ticket-duotone text-sm" />
+            チケット購入
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  {/* 画像拡大モーダル */}
+  {hasImages && (
+    <div id="img-modal" class="fixed inset-0 z-[80] flex-center pointer-events-none" style="background:rgba(0,0,0,0);transition:background 0.25s ease">
+      <button id="img-close" class="absolute top-5 right-5 w-12 h-12 rounded-full bg-white/20 flex-center text-white text-2xl cursor-pointer opacity-0 transition-opacity duration-250">&times;</button>
+      <button id="img-prev" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 flex-center text-white text-xl cursor-pointer opacity-0 transition-opacity duration-250"><span class="i-ph-caret-left-bold" /></button>
+      <button id="img-next" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 flex-center text-white text-xl cursor-pointer opacity-0 transition-opacity duration-250"><span class="i-ph-caret-right-bold" /></button>
+      <img id="img-modal-img" src="" alt="" class="max-w-[92vw] max-h-[85vh] object-contain rounded-xl opacity-0 transition-all duration-250" style="transform:scale(0.92)" />
+      <div id="img-counter" class="absolute bottom-5 left-1/2 -translate-x-1/2 text-white/60 text-xs font-display font-700 opacity-0 transition-opacity duration-250"></div>
+    </div>
+  )}
+
+  <Nav />
+</Layout>
+
+{hasImages && (
+  <script define:vars={{ images: item.images }}>
+    // Hero carousel auto-rotate + dot nav
+    const heroImgs = document.querySelectorAll('.hero-img');
+    const dots = document.querySelectorAll('[data-dot]');
+    let currentIdx = 0;
+
+    function showHeroImage(idx) {
+      heroImgs.forEach((img, i) => {
+        img.style.opacity = i === idx ? '1' : '0';
+      });
+      dots.forEach((d, i) => {
+        if (i === idx) {
+          d.classList.remove('bg-white/50');
+          d.classList.add('bg-white', 'w-5');
+        } else {
+          d.classList.add('bg-white/50');
+          d.classList.remove('bg-white', 'w-5');
+        }
+      });
+      currentIdx = idx;
+    }
+
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showHeroImage(i);
+      });
+    });
+
+    // Modal
+    const modal = document.getElementById('img-modal');
+    const modalImg = document.getElementById('img-modal-img');
+    const modalClose = document.getElementById('img-close');
+    const modalPrev = document.getElementById('img-prev');
+    const modalNext = document.getElementById('img-next');
+    const modalCounter = document.getElementById('img-counter');
+    const expandBtn = document.getElementById('hero-expand');
+    let modalOpen = false;
+
+    function openModal(idx) {
+      currentIdx = idx;
+      showModalImage(idx);
+      modalOpen = true;
+      modal.style.pointerEvents = 'auto';
+      modal.style.backdropFilter = 'blur(8px)';
+      modal.style.setProperty('-webkit-backdrop-filter', 'blur(8px)');
+      modal.style.background = 'rgba(0,0,0,0.92)';
+      modalImg.style.opacity = '1';
+      modalImg.style.transform = 'scale(1)';
+      modalClose.style.opacity = '1';
+      modalPrev.style.opacity = images.length > 1 ? '1' : '0';
+      modalNext.style.opacity = images.length > 1 ? '1' : '0';
+      modalCounter.style.opacity = '1';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function showModalImage(idx) {
+      modalImg.src = images[idx];
+      modalCounter.textContent = `${idx + 1} / ${images.length}`;
+    }
+
+    function closeModal() {
+      modalOpen = false;
+      modal.style.background = 'rgba(0,0,0,0)';
+      modalImg.style.opacity = '0';
+      modalImg.style.transform = 'scale(0.92)';
+      modalClose.style.opacity = '0';
+      modalPrev.style.opacity = '0';
+      modalNext.style.opacity = '0';
+      modalCounter.style.opacity = '0';
+      document.body.style.overflow = '';
+      setTimeout(() => {
+        if (!modalOpen) {
+          modal.style.pointerEvents = 'none';
+          modal.style.backdropFilter = 'none';
+          modal.style.setProperty('-webkit-backdrop-filter', 'none');
+        }
+      }, 250);
+    }
+
+    function modalNav(dir) {
+      currentIdx = (currentIdx + dir + images.length) % images.length;
+      modalImg.style.opacity = '0';
+      setTimeout(() => {
+        showModalImage(currentIdx);
+        modalImg.style.opacity = '1';
+      }, 150);
+    }
+
+    expandBtn?.addEventListener('click', () => openModal(currentIdx));
+    modalClose?.addEventListener('click', closeModal);
+    modalPrev?.addEventListener('click', (e) => { e.stopPropagation(); modalNav(-1); });
+    modalNext?.addEventListener('click', (e) => { e.stopPropagation(); modalNav(1); });
+    modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (!modalOpen) return;
+      if (e.key === 'Escape') closeModal();
+      if (e.key === 'ArrowLeft') modalNav(-1);
+      if (e.key === 'ArrowRight') modalNav(1);
+    });
+
+    // Swipe on hero
+    let touchStartX = 0;
+    const heroEl = document.getElementById('hero-carousel');
+    heroEl?.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    heroEl?.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50 && images.length > 1) {
+        const next = (currentIdx + (dx < 0 ? 1 : -1) + images.length) % images.length;
+        showHeroImage(next);
+      }
+    });
+
+    // Swipe on modal
+    modal?.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    modal?.addEventListener('touchend', (e) => {
+      if (!modalOpen) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) modalNav(dx < 0 ? 1 : -1);
+    });
+  </script>
+)}

@@ -3,6 +3,12 @@ import { showcaseItems } from '../../data/auctionShowcase';
 
 function ImageCarousel({ images }: { images: string[] }) {
   const [idx, setIdx] = useState(0);
+
+  const stopNav = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
     <div className="absolute inset-0">
       <img
@@ -17,21 +23,21 @@ function ImageCarousel({ images }: { images: string[] }) {
               <button
                 key={i}
                 type="button"
-                onClick={(e) => { e.stopPropagation(); setIdx(i); }}
+                onClick={(e) => { stopNav(e); setIdx(i); }}
                 className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${i === idx ? 'bg-white w-4' : 'bg-white/40'}`}
               />
             ))}
           </div>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setIdx((idx - 1 + images.length) % images.length); }}
+            onClick={(e) => { stopNav(e); setIdx((idx - 1 + images.length) % images.length); }}
             className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 flex-center text-white/70 text-sm cursor-pointer z-20"
           >
             <span className="i-ph-caret-left-bold" />
           </button>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setIdx((idx + 1) % images.length); }}
+            onClick={(e) => { stopNav(e); setIdx((idx + 1) % images.length); }}
             className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 flex-center text-white/70 text-sm cursor-pointer z-20"
           >
             <span className="i-ph-caret-right-bold" />
@@ -45,10 +51,11 @@ function ImageCarousel({ images }: { images: string[] }) {
 export default function AuctionShowcase() {
   return (
     <div className="space-y-4 px-5 max-w-lg mx-auto">
-      {showcaseItems.map((item, i) => (
-        <div
+      {showcaseItems.map((item) => (
+        <a
           key={item.lot}
-          className="relative rounded-2xl overflow-hidden"
+          href={`/auction/${String(item.lot).padStart(2, '0')}`}
+          className="block relative rounded-2xl overflow-hidden active:scale-[0.98] transition-transform duration-150 cursor-pointer"
           style={{ background: item.gradient, aspectRatio: '3 / 4' }}
         >
           {/* Photo carousel or decorative bg */}
@@ -72,6 +79,11 @@ export default function AuctionShowcase() {
             </span>
           </div>
 
+          {/* 詳細アイコン - top right */}
+          <div className="absolute top-5 right-5 z-10 w-8 h-8 rounded-full bg-white/15 backdrop-blur-sm flex-center">
+            <span className="i-ph-arrow-up-right-bold text-sm text-white" />
+          </div>
+
           {/* Content - bottom */}
           <div className="absolute inset-x-0 bottom-0 z-10 p-5 pt-24"
             style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)' }}
@@ -93,28 +105,34 @@ export default function AuctionShowcase() {
             )}
 
             {/* Description */}
-            <p className="text-white/50 text-sm leading-relaxed mb-4">
+            <p className="text-white/50 text-sm leading-relaxed mb-4 line-clamp-2">
               {item.description}
             </p>
 
-            {/* Price */}
-            {item.startPrice > 0 ? (
-              <div>
-                <span className="text-amber-500/70 text-[10px] font-700 tracking-[0.2em] uppercase block mb-1">
-                  START PRICE
-                </span>
-                <span className="font-display font-800 text-xl text-amber-400 tabular-nums">
-                  &yen;{item.startPrice.toLocaleString()}
-                </span>
-              </div>
-            ) : (
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-3.5 py-2">
-                <span className="i-ph-clock-countdown-duotone text-amber-400 text-base" />
-                <span className="text-white/80 text-xs font-display font-700">近日公開</span>
-              </div>
-            )}
+            {/* Price + View detail */}
+            <div className="flex items-end justify-between gap-3">
+              {item.startPrice > 0 ? (
+                <div>
+                  <span className="text-amber-500/70 text-[10px] font-700 tracking-[0.2em] uppercase block mb-1">
+                    START PRICE
+                  </span>
+                  <span className="font-display font-800 text-xl text-amber-400 tabular-nums">
+                    &yen;{item.startPrice.toLocaleString()}
+                  </span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-3.5 py-2">
+                  <span className="i-ph-clock-countdown-duotone text-amber-400 text-base" />
+                  <span className="text-white/80 text-xs font-display font-700">価格未定</span>
+                </div>
+              )}
+              <span className="inline-flex items-center gap-1 text-white/70 text-xs font-display font-700 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm shrink-0">
+                詳細を見る
+                <span className="i-ph-arrow-right-bold text-xs" />
+              </span>
+            </div>
           </div>
-        </div>
+        </a>
       ))}
     </div>
   );
