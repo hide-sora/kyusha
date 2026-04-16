@@ -29,6 +29,8 @@ export default defineConfig({
     'i-ph-sign-in-duotone',
     // Admin page icons
     'i-ph-lightning-duotone',
+    // Analytics page icons
+    'i-ph-chart-bar-duotone', 'i-ph-eye-duotone', 'i-ph-users-duotone',
     // Verify page icons
     'i-ph-qr-code-duotone', 'i-ph-x-circle-duotone',
     'animate-spin',

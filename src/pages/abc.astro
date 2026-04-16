@@ -1,0 +1,17 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AnalyticsDashboard from '../components/Analytics/AnalyticsDashboard';
+---
+<Layout title="アクセス解析">
+  <main class="min-h-screen">
+    <header class="px-4 pt-8 pb-4">
+      <a href="/admin" class="inline-flex items-center gap-1 text-sm text-on-surface-variant mb-3 hover:text-on-surface transition-colors">
+        <span class="i-ph-arrow-left-bold text-sm" />
+        管理画面
+      </a>
+      <h1 class="font-display font-800 text-3xl text-on-surface">アクセス解析</h1>
+      <p class="text-sm text-on-surface-variant mt-1">サイトへのアクセス状況をリアルタイムで確認</p>
+    </header>
+    <AnalyticsDashboard client:load />
+  </main>
+</Layout>
