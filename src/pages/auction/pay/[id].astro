@@ -1,0 +1,44 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Nav from '../../../components/common/Nav.astro';
+import AuctionPayStandalone from '../../../components/Auction/AuctionPayStandalone';
+
+const { id } = Astro.params;
+---
+<Layout title="お支払い">
+  <main class="min-h-screen pb-nav-safe bg-surface">
+    <header class="px-5 pt-10 pb-4 max-w-lg mx-auto">
+      <a href="/auction" class="inline-flex items-center gap-1.5 text-xs text-on-surface-variant active:scale-95 transition-transform mb-4">
+        <span class="i-ph-arrow-left-bold text-sm" />
+        オークションに戻る
+      </a>
+      <p class="label-upper text-secondary mb-2">CHARITY AUCTION</p>
+      <h1 class="font-display font-800 text-3xl tracking-tight text-on-surface">
+        お支払い
+      </h1>
+      <p class="text-xs text-on-surface-variant mt-1">
+        旧車サミット2026 チャリティーオークション
+      </p>
+    </header>
+
+    <div class="px-5 max-w-lg mx-auto pb-8">
+      {id ? (
+        <AuctionPayStandalone client:load itemId={id} />
+      ) : (
+        <div class="card-elevated text-center py-10">
+          <div class="w-16 h-16 mx-auto rounded-full bg-error/10 flex-center mb-4">
+            <span class="i-ph-warning-circle-duotone text-3xl text-error" />
+          </div>
+          <p class="font-display font-700 text-base text-on-surface mb-1">
+            無効なリンクです
+          </p>
+          <p class="text-xs text-on-surface-variant">
+            スタッフにお問い合わせください。
+          </p>
+        </div>
+      )}
+    </div>
+
+  </main>
+  <Nav />
+</Layout>

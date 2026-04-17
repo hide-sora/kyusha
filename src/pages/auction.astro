@@ -1,7 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/common/Nav.astro';
-import AuctionPage from '../components/Auction/AuctionPage';
 import AuctionShowcase from '../components/Auction/AuctionShowcase';
 ---
 <Layout title="オークション">
@@ -12,11 +11,17 @@ import AuctionShowcase from '../components/Auction/AuctionShowcase';
         チャリティーオークション
       </h1>
       <p class="text-sm text-on-surface-variant leading-relaxed mb-3">
-        YouTuberの私物が出品されます！スマホからその場で入札できます。出品物は順次公開していきますのでお楽しみに！
+        会場に来た人しか買えない！イベント当日しか買えない品の数々。スマホからその場で入札できます。出品物は順次公開していきますのでお楽しみに！
       </p>
-      <div class="inline-flex items-center gap-2 px-4 py-2 bg-tertiary-container text-on-tertiary-container rounded-full text-xs font-600">
-        <span class="i-ph-gavel-duotone text-base" />
-        13:00 スタート
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-tertiary-container text-on-tertiary-container rounded-full text-xs font-600">
+          <span class="i-ph-gavel-duotone text-sm" />
+          13:00 スタート
+        </div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-full text-xs font-600">
+          <span class="i-ph-ticket-duotone text-sm" />
+          追加チケット不要
+        </div>
       </div>
     </header>
 
@@ -32,8 +37,6 @@ import AuctionShowcase from '../components/Auction/AuctionShowcase';
       </div>
       <AuctionShowcase client:load />
     </section>
-
-    <AuctionPage client:load />
   </main>
   <Nav />
 </Layout>

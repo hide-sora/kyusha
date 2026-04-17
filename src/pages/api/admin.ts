@@ -21,6 +21,7 @@ const CONFIG_FIELDS = [
   { name: 'voting_open', type: 'bool' },
   { name: 'auction_open', type: 'bool' },
   { name: 'map_event', type: 'bool' },
+  { name: 'ranking_visible', type: 'bool' },
 ];
 
 async function ensureConfigCollection(headers: Record<string, string>): Promise<void> {
@@ -110,6 +111,7 @@ export const POST: APIRoute = async ({ request }) => {
         if (body.voting_open !== undefined) update.voting_open = body.voting_open;
         if (body.auction_open !== undefined) update.auction_open = body.auction_open;
         if (body.map_event !== undefined) update.map_event = body.map_event;
+        if (body.ranking_visible !== undefined) update.ranking_visible = body.ranking_visible;
 
         const res = await fetch(`${PB_URL}/api/collections/event_config/records/${config.id}`, {
           method: 'PATCH',

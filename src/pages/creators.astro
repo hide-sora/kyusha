@@ -97,7 +97,7 @@ import { creators, sponsors } from '../data/creators';
                 class="block bg-surface-container-low rounded-xl p-4 hover:bg-surface-container-lowest transition-all duration-200 card-press reveal"
               >
                 <div class="flex items-center gap-4">
-                  <div class="w-14 h-14 rounded-xl shrink-0 overflow-hidden bg-surface-container-highest flex-center">
+                  <div class:list={['w-14 h-14 rounded-xl shrink-0 overflow-hidden flex-center', s.name === 'Sora' ? 'bg-white' : 'bg-surface-container-highest']}>
                     {s.image ? (
                       <img src={s.image} alt={s.name} class="w-full h-full object-contain p-1" loading="lazy" />
                     ) : (

@@ -187,52 +187,71 @@ export default function TicketForm() {
         <div className="w-16 h-16 rounded-full bg-secondary-container flex-center mx-auto mb-4">
           <span className="i-ph-check-circle-duotone text-4xl text-secondary" />
         </div>
-        <h2 className="font-display font-800 text-xl text-on-surface mb-1">
-          購入完了！
+        <h2 className="font-display font-800 text-2xl text-on-surface mb-1">
+          決済成功
         </h2>
-        <p className="text-xs text-on-surface-variant mb-2">
-          ご登録のメールアドレスに確認メールをお送りしました
+        <p className="text-xs text-on-surface-variant mb-5">
+          ご購入ありがとうございます
         </p>
-        <p className="text-[10px] text-on-surface-variant/60 mb-5">
-          このページをスクリーンショットで保存してください
-        </p>
-        <div className="bg-surface-container-low rounded-xl p-4 text-left space-y-2 mb-4">
-          <div className="flex justify-between text-sm">
-            <span className="text-on-surface-variant">チケット</span>
-            <span className="font-700 text-on-surface">{selectedTicket?.label}</span>
+
+        {selectedTicket?.hasQuantity && (
+          <div className="bg-surface-container-low rounded-xl p-5 mb-4">
+            <div className="flex items-center justify-center gap-8">
+              <div>
+                <p className="text-[10px] text-on-surface-variant mb-0.5">大人</p>
+                <p className="font-display font-800 text-5xl text-on-surface leading-none">
+                  {quantity}<span className="text-sm font-600 ml-0.5">名</span>
+                </p>
+              </div>
+              <div className="w-px h-12 bg-outline-variant/30" />
+              <div>
+                <p className="text-[10px] text-on-surface-variant mb-0.5">子供</p>
+                <p className="font-display font-800 text-5xl text-on-surface leading-none">
+                  {childQuantity}<span className="text-sm font-600 ml-0.5">名</span>
+                </p>
+              </div>
+            </div>
           </div>
-          {(selectedTicket?.hasQuantity) && (
-            <div className="flex justify-between text-sm">
-              <span className="text-on-surface-variant">大人</span>
-              <span className="font-700 text-on-surface">{quantity}名</span>
-            </div>
-          )}
-          {(selectedTicket?.hasQuantity) && childQuantity > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-on-surface-variant">小学生以下</span>
-              <span className="font-700 text-secondary">{childQuantity}名（無料）</span>
-            </div>
-          )}
-          <div className="flex justify-between items-baseline border-t border-outline-variant/20 pt-2">
-            <span className="text-xs text-on-surface-variant">合計</span>
-            <span className="font-display font-800 text-xl text-on-surface">
-              ¥{total.toLocaleString()}
-            </span>
+        )}
+
+        <div className="bg-amber-100 text-amber-900 rounded-xl p-4 mb-3 flex items-center gap-2">
+          <span className="i-ph-hand-waving-duotone text-xl shrink-0" />
+          <p className="text-sm font-700 text-left leading-tight">この画面をスタッフにお見せください</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="bg-surface-container-low rounded-xl p-3 text-center">
+            <span className="i-ph-camera-duotone text-2xl text-on-surface-variant mb-1 block mx-auto" />
+            <p className="text-[10px] text-on-surface-variant leading-tight">スクショで<br />保存しておく</p>
+          </div>
+          <div className="bg-surface-container-low rounded-xl p-3 text-center">
+            <span className="i-ph-envelope-simple-duotone text-2xl text-on-surface-variant mb-1 block mx-auto" />
+            <p className="text-[10px] text-on-surface-variant leading-tight">メールでも<br />送信済み</p>
           </div>
         </div>
+
         {ticketCode && (
-          <div className="mt-4 space-y-3">
+          <div className="mb-3 space-y-2">
             <img
               src={`/api/qr/${ticketCode}.png`}
               alt="入場QRコード"
-              className="w-40 h-40 mx-auto rounded-xl border border-outline-variant/20"
+              className="w-32 h-32 mx-auto rounded-xl border border-outline-variant/20"
             />
-            <p className="font-mono font-800 text-lg tracking-widest text-on-surface">{ticketCode}</p>
-            <p className="text-[10px] text-on-surface-variant">このQRコードを入場時にご提示ください</p>
+            <p className="text-[10px] text-on-surface-variant">このQRコードを入場時にご提示</p>
           </div>
         )}
+
+        <div className="text-xs text-on-surface-variant border-t border-outline-variant/20 pt-3">
+          合計 <span className="font-display font-800 text-base text-on-surface">¥{total.toLocaleString()}</span>
+        </div>
+
+        {ticketCode && (
+          <p className="text-[10px] text-on-surface-variant/60 font-mono mt-2">
+            チケットNo: {ticketCode}
+          </p>
+        )}
         {orderId && (
-          <p className="text-[10px] text-on-surface-variant font-mono mt-2">
+          <p className="text-[9px] text-on-surface-variant/50 font-mono">
             注文番号: {orderId}
           </p>
         )}
