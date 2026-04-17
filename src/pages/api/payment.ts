@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { SquareClient, SquareEnvironment } from 'square';
 import { randomUUID } from 'crypto';
 import { generateTicketCode } from '../../lib/ticket';
+import { generateTicketEmailHtml } from '../../lib/ticketEmail';
 
 const ADVANCE_CAR_STOCK = 93;
 const PB_URL = import.meta.env.PUBLIC_PB_URL || 'http://133.18.160.234:8093';
@@ -175,6 +176,16 @@ export const POST: APIRoute = async ({ request }) => {
       // n8n webhook でメール送信（fire-and-forget）
       const n8nUrl = import.meta.env.N8N_WEBHOOK_URL;
       if (n8nUrl) {
+        const emailHtml = generateTicketEmailHtml({
+          ticketLabel: TICKET_LABELS[ticketType],
+          name,
+          quantity,
+          childQuantity,
+          ticketCode,
+          orderId,
+          total: validAmount,
+        });
+
         fetch(n8nUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -190,6 +201,8 @@ export const POST: APIRoute = async ({ request }) => {
             ticketCode,
             qrImageUrl: `https://classic-car-2026.com/api/qr/${ticketCode}.png`,
             verifyUrl: `https://classic-car-2026.com/verify?code=${ticketCode}`,
+            emailHtml,
+            emailSubject: `【旧車サミット2026】電子チケット（${TICKET_LABELS[ticketType]}）`,
           }),
         }).catch(e => console.error('[n8n] webhook error:', e));
       }
