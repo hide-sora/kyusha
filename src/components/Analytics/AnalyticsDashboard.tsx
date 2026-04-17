@@ -147,25 +147,6 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="flex flex-col gap-4 px-4 py-5">
-      {/* 追加セットアップが必要な場合の案内 */}
-      {(!data.timestampsAvailable || data.uniqueVisitors === 0) && data.totalPV > 0 && (
-        <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4">
-          <div className="flex items-start gap-2">
-            <span className="i-ph-warning-duotone text-lg text-amber-500 mt-0.5" />
-            <div className="flex-1 text-xs text-on-surface leading-relaxed">
-              <p className="font-700 mb-1">追加フィールドを設定するとより詳細に分析できます</p>
-              <p className="text-on-surface-variant">
-                PocketBase の <code className="font-mono bg-surface-container px-1 rounded">page_views</code> コレクションに以下を追加してください:
-              </p>
-              <ul className="mt-1 ml-4 space-y-0.5 text-on-surface-variant">
-                {!data.timestampsAvailable && <li>• <code className="font-mono">created</code> (Autodate) — 時間別・日別集計用</li>}
-                {data.uniqueVisitors === 0 && <li>• <code className="font-mono">device_id</code> (Plain text) — ユニーク訪問者数用</li>}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* サマリーカード */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-2xl p-4 text-center bg-surface-container-lowest shadow-sm">
