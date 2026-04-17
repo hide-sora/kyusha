@@ -124,4 +124,11 @@ export const sponsors: Sponsor[] = [
     url: 'https://www.youtube.com/@trustkikaku',
     image: '/sponsors/trust.jpg',
   },
+  {
+    name: 'Sora',
+    description: '旧車サミット2026 公式Webアプリの企画・デザイン・開発を担当。',
+    icon: 'i-ph-code-duotone',
+    url: 'https://sora-travel.com',
+    image: '/sponsors/sora.png',
+  },
 ];

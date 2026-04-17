@@ -26,6 +26,7 @@ const galleryPhotos = [
       <div class="relative h-full flex flex-col justify-between px-5 pt-8 pb-5">
         {/* タイトル */}
         <div class="hero-text text-center">
+          <img src="/mito-logo.png" alt="水戸道楽TV" class="h-16 w-auto mx-auto mb-2 drop-shadow-lg" />
           <h1 class="font-display font-800 text-[2.2rem] tracking-tighter leading-[0.9] text-white">
             YouTuber<br/>旧車サミット<span class="font-900 text-[3rem] tracking-[-0.04em] ml-1">2026</span>
           </h1>
@@ -48,6 +49,15 @@ const galleryPhotos = [
             <span class="i-ph-ticket-duotone text-lg mr-1.5 align-middle" />チケット購入はこちら
           </a>
         </div>
+      </div>
+    </section>
+
+    {/* 水戸道楽TV 主催タグライン */}
+    <section class="py-16 px-5">
+      <div class="max-w-lg mx-auto text-center">
+        <img src="/mito-logo.png" alt="水戸道楽TV" class="h-28 w-auto mx-auto mb-5" loading="lazy" />
+        <p class="font-display font-800 text-xl text-on-surface tracking-tight">水戸道楽TV 主催</p>
+        <p class="text-sm text-on-surface-variant mt-2">日本最大級｜大型旧車展示イベント</p>
       </div>
     </section>
 
@@ -95,7 +105,7 @@ const galleryPhotos = [
           <div class="grid grid-cols-3 gap-3 reveal-stagger">
             {sponsors.map((s, i) => (
               <div class="flex flex-col items-center gap-2 card-base p-3 rounded-2xl card-press reveal text-center cursor-pointer" data-profile data-name={s.name} data-desc={s.description} data-img={s.image || ''} data-subs={s.subscribers || ''} data-url={s.url || ''} data-channel={s.booth || ''}>
-                <div class="w-18 h-18 rounded-xl overflow-hidden bg-surface-container-highest shrink-0">
+                <div class:list={['w-18 h-18 rounded-xl overflow-hidden shrink-0', s.name === 'Sora' ? 'bg-white' : 'bg-surface-container-highest']}>
                   {s.image ? (
                     <img src={s.image} alt={s.name} class="w-full h-full object-contain" loading="lazy" />
                   ) : (
@@ -250,7 +260,7 @@ const galleryPhotos = [
           <div class="flex items-start gap-3">
             <span class="i-ph-map-pin-duotone text-base text-on-surface-variant mt-0.5 shrink-0" />
             <div>
-              <a href="https://maps.app.goo.gl/YfQZ7VqJZ3Eo6cV39" target="_blank" rel="noopener noreferrer" class="font-display font-600 text-on-surface underline decoration-secondary/30 underline-offset-2 hover:decoration-secondary">モビリティリゾートもてぎ 南コース</a>
+              <a href="https://www.google.com/maps/search/?api=1&query=%E3%83%A2%E3%83%93%E3%83%AA%E3%83%86%E3%82%A3%E3%83%AA%E3%82%BE%E3%83%BC%E3%83%88%E3%82%82%E3%81%A6%E3%81%8E+%E5%8D%97%E3%82%B3%E3%83%BC%E3%82%B9" target="_blank" rel="noopener noreferrer" class="font-display font-600 text-on-surface underline decoration-secondary/30 underline-offset-2 hover:decoration-secondary">モビリティリゾートもてぎ 南コース</a>
               <p class="text-on-surface-variant text-xs mt-0.5">栃木県芳賀郡茂木町桧山120-1</p>
             </div>
           </div>

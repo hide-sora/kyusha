@@ -36,6 +36,7 @@ export default function VotePage() {
   const msgTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const [voteState, setVoteState] = useState(getVoteState);
   const [myVotes, setMyVotes] = useState<string[]>([]);
+  const [rankingVisible, setRankingVisible] = useState(false);
   const pb = getPb();
 
   const showMessage = useCallback((msg: string, duration = 4000) => {
@@ -50,6 +51,7 @@ export default function VotePage() {
       .then(r => r.json())
       .then((cfg: any) => {
         if (cfg.voting_open) setVoteState('open');
+        setRankingVisible(!!cfg.ranking_visible);
       })
       .catch(() => {});
   }, []);
@@ -60,6 +62,7 @@ export default function VotePage() {
       fetch('/api/config')
         .then(r => r.json())
         .then((cfg: any) => {
+          setRankingVisible(!!cfg.ranking_visible);
           if (cfg.voting_open) { setVoteState('open'); return; }
           setVoteState(getVoteState());
         })
@@ -287,6 +290,7 @@ export default function VotePage() {
       )}
 
       {/* ランキング */}
+      {rankingVisible && (
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display font-700 text-sm text-on-surface tracking-tight flex items-center gap-2">
@@ -370,6 +374,7 @@ export default function VotePage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
