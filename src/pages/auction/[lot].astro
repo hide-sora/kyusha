@@ -6,7 +6,7 @@ import { showcaseItems } from '../../data/auctionShowcase';
 export const prerender = true;
 
 export function getStaticPaths() {
-  return showcaseItems.map(item => ({
+  return showcaseItems.filter(item => !item.hidden).map(item => ({
     params: { lot: String(item.lot).padStart(2, '0') },
     props: { item },
   }));

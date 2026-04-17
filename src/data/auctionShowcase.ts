@@ -31,6 +31,10 @@ export interface ShowcaseItem {
   subItems?: SubItem[];
   /** コンディション・備考 */
   notes?: string[];
+  /** 参考価格（通常流通価格の目安） */
+  retailValue?: string;
+  /** 一覧・詳細から非表示にする */
+  hidden?: boolean;
 }
 
 export const showcaseItems: ShowcaseItem[] = [
@@ -76,6 +80,7 @@ export const showcaseItems: ShowcaseItem[] = [
     startPrice: 1,
     gradient: 'linear-gradient(135deg, #2d1b0e 0%, #3d2817 50%, #4a3120 100%)',
     icon: 'i-ph-armchair-duotone',
+    hidden: true,
     highlights: [
       '水戸道楽TVが制作したハンドメイド作品',
       '世界に一つだけのコレクターズアイテム',
@@ -89,95 +94,63 @@ export const showcaseItems: ShowcaseItem[] = [
   },
   {
     lot: 3,
-    title: '柿本改マフラー',
-    subtitle: 'KAKIMOTO RACING',
-    description: 'シュンヤのガレージライフから！マツダ RX-7用、JASMA認定の柿本改マフラー。',
+    title: 'RX-7 カスタムパーツ 3点セット',
+    subtitle: 'MAZDA RX-7 PARTS BUNDLE',
+    description: 'シュンヤのガレージライフから！RX-7用マフラー・オルタネーター・オーバーフェンダーの3点まとめてセット。',
     longDescription:
-      'シュンヤのガレージライフから、マツダ RX-7用の「柿本改」マフラーをチャリティーオークションに出品！\nJASMA認定の人気ブランド。ガレージに眠っていたレアパーツで、RX-7オーナーには堪らない逸品です。',
+      'シュンヤのガレージライフから、マツダ RX-7 用の人気カスタム＆メンテパーツを3点まとめてチャリティーオークションに出品！\n\n・柿本改マフラー（JASMA認定）\n・ARD リビルト オルタネーター A-M090（動作確認済み）\n・オーバーフェンダー一式（ワイドボディ化用）\n\nRX-7 オーナーが揃えたいパーツを一気に手に入れられる、お得なバンドル出品です。\n\n通常、新品・中古で揃えると合計 ¥250,000〜¥350,000 相当のパーツを、最低落札価格 ¥50,000 からスタート！',
     youtuber: 'シュンヤのガレージライフ',
-    startPrice: 1,
+    startPrice: 50000,
+    retailValue: '約 ¥250,000〜¥350,000 相当',
     gradient: 'linear-gradient(135deg, #0d1b2a 0%, #1b2838 50%, #2d3a4a 100%)',
-    icon: 'i-ph-fire-duotone',
+    icon: 'i-ph-package-duotone',
     images: [
       '/auction/shunya-muffler-1.jpg',
+      '/auction/shunya-alternator.jpg',
+      '/auction/shunya-fender.jpg',
       '/auction/shunya-muffler-2.jpg',
       '/auction/shunya-muffler-3.jpg',
     ],
     specs: [
       { label: '適合車種', value: 'マツダ RX-7' },
-      { label: 'ブランド', value: '柿本改' },
-      { label: '認定', value: 'JASMA認定' },
+      { label: 'セット内容', value: 'マフラー + オルタネーター + フェンダー' },
+      { label: '参考合計価格', value: '約 ¥250,000〜¥350,000 相当' },
+      { label: '最低落札価格', value: '¥50,000' },
     ],
     highlights: [
-      'マツダ RX-7用マフラー',
-      'JASMA認定の人気ブランド「柿本改」',
-      '状態良好',
-      'RX-7オーナーには堪らない逸品',
+      'RX-7 カスタム＆メンテに必須の人気パーツ3点セット',
+      '柿本改マフラー（JASMA認定ブランド）',
+      'ARD リビルト オルタネーター A-M090（動作確認済み）',
+      'ワイドボディ化に必須のオーバーフェンダー一式',
+      '単品で揃えると合計 約¥250,000〜¥350,000 相当',
+    ],
+    subItems: [
+      {
+        title: '柿本改マフラー',
+        description: 'マツダ RX-7 用、JASMA認定の人気ブランド「柿本改」マフラー。状態良好。',
+        icon: 'i-ph-fire-duotone',
+      },
+      {
+        title: 'オルタネーター A-M090',
+        description: 'ARD リビルト品、動作確認済み。交換・予備パーツに最適。',
+        icon: 'i-ph-lightning-duotone',
+      },
+      {
+        title: 'オーバーフェンダー一式',
+        description: 'RX-7 のワイドボディ化に必須。カスタム製作中の方におすすめ。',
+        icon: 'i-ph-squares-four-duotone',
+      },
     ],
     notes: [
-      'マツダ RX-7用です',
+      '3点セットでの出品です（バラ売り不可）',
+      'マツダ RX-7 用です',
       'ノークレーム・ノーリターンでお願いします',
-      'お渡しは会場にてとなります（配送はご相談）',
+      'お渡しは会場にてとなります（大型パーツの配送はご相談）',
+      '最低落札価格は ¥50,000 です',
     ],
   },
   {
     lot: 4,
-    title: 'オルタネーター A-M090',
-    subtitle: 'ARD REBUILT',
-    description: 'シュンヤのガレージライフから！マツダ RX-7用、ARDリビルトのオルタネーター。動作確認済み。',
-    longDescription:
-      'シュンヤのガレージライフから、マツダ RX-7用のARDリビルトオルタネーター「A-M090」をチャリティーオークションに出品！\n動作確認済みで、RX-7の交換・予備パーツとしてお使いいただけます。',
-    youtuber: 'シュンヤのガレージライフ',
-    startPrice: 1,
-    gradient: 'linear-gradient(135deg, #1b1b2f 0%, #2d2d4a 50%, #3d3d5c 100%)',
-    icon: 'i-ph-lightning-duotone',
-    images: ['/auction/shunya-alternator.jpg'],
-    specs: [
-      { label: '適合車種', value: 'マツダ RX-7' },
-      { label: '型番', value: 'A-M090' },
-      { label: 'メーカー', value: 'ARD' },
-      { label: '種別', value: 'リビルト品' },
-    ],
-    highlights: [
-      'マツダ RX-7用オルタネーター',
-      'ARDリビルト品',
-      '動作確認済み',
-      '交換・予備パーツに最適',
-    ],
-    notes: [
-      'マツダ RX-7用です',
-      'ノークレーム・ノーリターンでお願いします',
-      'お渡しは会場にてとなります（配送はご相談）',
-    ],
-  },
-  {
-    lot: 5,
-    title: 'オーバーフェンダー一式',
-    description: 'シュンヤのガレージライフから！マツダ RX-7用、ワイドボディ化に必須のオーバーフェンダー一式。',
-    longDescription:
-      'シュンヤのガレージライフから、マツダ RX-7用のオーバーフェンダー一式をチャリティーオークションに出品！\nRX-7のワイドボディ化に必須のパーツ。カスタム製作中の方、ワイド化を目指す方におすすめです。',
-    youtuber: 'シュンヤのガレージライフ',
-    startPrice: 1,
-    gradient: 'linear-gradient(135deg, #141824 0%, #263142 50%, #3a4456 100%)',
-    icon: 'i-ph-squares-four-duotone',
-    images: ['/auction/shunya-fender.jpg'],
-    specs: [
-      { label: '適合車種', value: 'マツダ RX-7' },
-    ],
-    highlights: [
-      'マツダ RX-7用オーバーフェンダー',
-      'ワイドボディ化に必須のパーツ',
-      'カスタム製作中の方におすすめ',
-      '一式まとめての出品',
-    ],
-    notes: [
-      'マツダ RX-7用です',
-      'ノークレーム・ノーリターンでお願いします',
-      'お渡しは会場にてとなります（大型パーツの配送はご相談）',
-    ],
-  },
-  {
-    lot: 6,
     title: 'フェアレディZ Z33',
     description: '水島翔の愛車！カスタムグラフィック＆ワイドボディのZ33。深リムホイール装着。',
     longDescription:
@@ -208,7 +181,7 @@ export const showcaseItems: ShowcaseItem[] = [
     ],
   },
   {
-    lot: 7,
+    lot: 5,
     title: 'ホンダ フォルツァ',
     subtitle: 'HONDA FORZA',
     description: 'SEiWAさんから出品！ブラックボディのホンダ フォルツァ。ビッグスクーターの定番モデル。',
