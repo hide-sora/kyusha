@@ -1,4 +1,6 @@
 ---
+import MyTicketFAB from '../components/Ticket/MyTicketFAB';
+
 interface Props {
   title?: string;
   description?: string;
@@ -19,6 +21,7 @@ const fullTitle = title === '旧車サミット2026' ? title : `${title} | 旧�
 </head>
 <body class="layout-base">
   <slot />
+  <MyTicketFAB client:load />
   <style is:global>
     :root {
       --nav-h: calc(5rem + env(safe-area-inset-bottom, 0px));

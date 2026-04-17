@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { SquareClient, SquareEnvironment } from 'square';
 import { randomUUID } from 'crypto';
 import { generateTicketCode } from '../../lib/ticket';
+import { generateTicketEmailHtml } from '../../lib/ticketEmail';
 
 const ADVANCE_CAR_STOCK = 93;
 const PB_URL = import.meta.env.PUBLIC_PB_URL || 'http://133.18.160.234:8093';
@@ -32,6 +33,9 @@ const VALID_PRICES: Record<string, number> = {
   day_general: 2500,
   test_1yen: 1,
 };
+
+// 前売 → 当日の切替: 2026-04-26 00:00 JST
+const PRESALE_CUTOFF_MS = Date.parse('2026-04-26T00:00:00+09:00');
 
 export const POST: APIRoute = async ({ request }) => {
   const accessToken = import.meta.env.SQUARE_ACCESS_TOKEN;
@@ -84,6 +88,21 @@ export const POST: APIRoute = async ({ request }) => {
   if (amount !== validAmount) {
     return new Response(
       JSON.stringify({ success: false, error: '金額が一致しません' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // 前売 → 当日の期限チェック（4/26 0:00 JST 以降は前売券を拒否・当日券を強制）
+  const now = Date.now();
+  if (ticketType === 'advance_general' && now >= PRESALE_CUTOFF_MS) {
+    return new Response(
+      JSON.stringify({ success: false, error: '前売券の販売は終了しました。当日券をご購入ください。' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  if (ticketType === 'day_general' && now < PRESALE_CUTOFF_MS) {
+    return new Response(
+      JSON.stringify({ success: false, error: '現在は前売券販売期間です。' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -157,6 +176,16 @@ export const POST: APIRoute = async ({ request }) => {
       // n8n webhook でメール送信（fire-and-forget）
       const n8nUrl = import.meta.env.N8N_WEBHOOK_URL;
       if (n8nUrl) {
+        const emailHtml = generateTicketEmailHtml({
+          ticketLabel: TICKET_LABELS[ticketType],
+          name,
+          quantity,
+          childQuantity,
+          ticketCode,
+          orderId,
+          total: validAmount,
+        });
+
         fetch(n8nUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -172,6 +201,8 @@ export const POST: APIRoute = async ({ request }) => {
             ticketCode,
             qrImageUrl: `https://classic-car-2026.com/api/qr/${ticketCode}.png`,
             verifyUrl: `https://classic-car-2026.com/verify?code=${ticketCode}`,
+            emailHtml,
+            emailSubject: `【旧車サミット2026】電子チケット（${TICKET_LABELS[ticketType]}）`,
           }),
         }).catch(e => console.error('[n8n] webhook error:', e));
       }

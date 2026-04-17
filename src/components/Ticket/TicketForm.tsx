@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import TicketCard from './TicketCard';
+import { saveMyTicket } from '../../lib/myTicket';
 
 declare global {
   interface Window {
@@ -6,7 +8,7 @@ declare global {
   }
 }
 
-type TicketType = 'day_general';
+type TicketType = 'advance_general' | 'day_general';
 type Step = 'select' | 'info' | 'payment' | 'success';
 
 interface TicketConfig {
@@ -18,7 +20,19 @@ interface TicketConfig {
   hasQuantity: boolean;
 }
 
-const TICKET: TicketConfig = {
+// 前売 → 当日の切替: 2026-04-26 00:00 JST
+const PRESALE_CUTOFF_MS = Date.parse('2026-04-26T00:00:00+09:00');
+
+const PRESALE_TICKET: TicketConfig = {
+  type: 'advance_general',
+  label: '一般入場（前売券）',
+  sublabel: '4/25(土) 23:59まで・もてぎ入場料・駐車場代込み',
+  price: 1500,
+  unit: '人',
+  hasQuantity: true,
+};
+
+const DAY_TICKET: TicketConfig = {
   type: 'day_general',
   label: '一般入場（当日券）',
   sublabel: 'もてぎ入場料・駐車場代込み',
@@ -27,9 +41,13 @@ const TICKET: TicketConfig = {
   hasQuantity: true,
 };
 
+const TICKET: TicketConfig =
+  Date.now() < PRESALE_CUTOFF_MS ? PRESALE_TICKET : DAY_TICKET;
+
 export default function TicketForm() {
   const [step, setStep] = useState<Step>('select');
-  const ticketType: TicketType = 'day_general';
+  const [successPhase, setSuccessPhase] = useState<'paid' | 'ticket'>('paid');
+  const ticketType: TicketType = TICKET.type;
   const [quantity, setQuantity] = useState(1);
   const [childQuantity, setChildQuantity] = useState(0);
   const [name, setName] = useState('');
@@ -39,6 +57,14 @@ export default function TicketForm() {
   const [error, setError] = useState('');
   const [orderId, setOrderId] = useState('');
   const [ticketCode, setTicketCode] = useState('');
+
+  // 決済完了 → チケット表示へ自動遷移
+  useEffect(() => {
+    if (step === 'success' && successPhase === 'paid') {
+      const t = setTimeout(() => setSuccessPhase('ticket'), 2000);
+      return () => clearTimeout(t);
+    }
+  }, [step, successPhase]);
 
   const cardRef = useRef<any>(null);
   const selectedTicket = TICKET;
@@ -173,6 +199,18 @@ export default function TicketForm() {
       setOrderId(data.orderId || '');
       setTicketCode(data.ticketCode || '');
       setStep('success');
+
+      // localStorage に保存 → 以降はFABからいつでも呼び出せる
+      saveMyTicket({
+        ticketLabel: selectedTicket.label,
+        name,
+        quantity,
+        childQuantity,
+        ticketCode: data.ticketCode || '',
+        orderId: data.orderId || '',
+        total,
+        purchasedAt: Date.now(),
+      });
     } catch {
       setError('通信エラーが発生しました。もう一度お試しください。');
       setLoading(false);
@@ -182,79 +220,72 @@ export default function TicketForm() {
 
   // ── 完了画面 ──────────────────────────────────
   if (step === 'success') {
-    return (
-      <div className="card-elevated text-center py-8 px-4 animate-scaleIn ticket-success-screen">
-        <div className="w-16 h-16 rounded-full bg-secondary-container flex-center mx-auto mb-4">
-          <span className="i-ph-check-circle-duotone text-4xl text-secondary" />
-        </div>
-        <h2 className="font-display font-800 text-2xl text-on-surface mb-1">
-          決済成功
-        </h2>
-        <p className="text-xs text-on-surface-variant mb-5">
-          ご購入ありがとうございます
-        </p>
-
-        {selectedTicket?.hasQuantity && (
-          <div className="bg-surface-container-low rounded-xl p-5 mb-4">
-            <div className="flex items-center justify-center gap-8">
-              <div>
-                <p className="text-[10px] text-on-surface-variant mb-0.5">大人</p>
-                <p className="font-display font-800 text-5xl text-on-surface leading-none">
-                  {quantity}<span className="text-sm font-600 ml-0.5">名</span>
-                </p>
-              </div>
-              <div className="w-px h-12 bg-outline-variant/30" />
-              <div>
-                <p className="text-[10px] text-on-surface-variant mb-0.5">子供</p>
-                <p className="font-display font-800 text-5xl text-on-surface leading-none">
-                  {childQuantity}<span className="text-sm font-600 ml-0.5">名</span>
-                </p>
-              </div>
+    // ── フェーズ1: 決済完了スプラッシュ ──
+    if (successPhase === 'paid') {
+      return (
+        <div className="ticket-success-screen -mx-5 -my-5 min-h-[520px] flex-center flex-col px-6 py-10 text-center">
+          <div className="relative mb-6">
+            {/* 波紋 */}
+            <span className="absolute inset-0 rounded-full bg-secondary/20 animate-ping" />
+            <div className="relative w-24 h-24 rounded-full bg-secondary flex-center animate-popIn shadow-[0_12px_32px_rgba(82,96,118,0.35)]">
+              <span className="i-ph-check-bold text-[56px] text-on-secondary" />
             </div>
           </div>
-        )}
-
-        <div className="bg-amber-100 text-amber-900 rounded-xl p-4 mb-3 flex items-center gap-2">
-          <span className="i-ph-hand-waving-duotone text-xl shrink-0" />
-          <p className="text-sm font-700 text-left leading-tight">この画面をスタッフにお見せください</p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="bg-surface-container-low rounded-xl p-3 text-center">
-            <span className="i-ph-camera-duotone text-2xl text-on-surface-variant mb-1 block mx-auto" />
-            <p className="text-[10px] text-on-surface-variant leading-tight">スクショで<br />保存しておく</p>
-          </div>
-          <div className="bg-surface-container-low rounded-xl p-3 text-center">
-            <span className="i-ph-envelope-simple-duotone text-2xl text-on-surface-variant mb-1 block mx-auto" />
-            <p className="text-[10px] text-on-surface-variant leading-tight">メールでも<br />送信済み</p>
-          </div>
-        </div>
-
-        {ticketCode && (
-          <div className="mb-3 space-y-2">
-            <img
-              src={`/api/qr/${ticketCode}.png`}
-              alt="入場QRコード"
-              className="w-32 h-32 mx-auto rounded-xl border border-outline-variant/20"
-            />
-            <p className="text-[10px] text-on-surface-variant">このQRコードを入場時にご提示</p>
-          </div>
-        )}
-
-        <div className="text-xs text-on-surface-variant border-t border-outline-variant/20 pt-3">
-          合計 <span className="font-display font-800 text-base text-on-surface">¥{total.toLocaleString()}</span>
-        </div>
-
-        {ticketCode && (
-          <p className="text-[10px] text-on-surface-variant/60 font-mono mt-2">
-            チケットNo: {ticketCode}
+          <h2 className="font-display font-800 text-3xl tracking-tight text-on-surface">
+            決済完了
+          </h2>
+          <p className="text-xs text-on-surface-variant mt-2 leading-relaxed">
+            ご購入ありがとうございました<br />
+            確認メールをお送りしました
           </p>
-        )}
-        {orderId && (
-          <p className="text-[9px] text-on-surface-variant/50 font-mono">
-            注文番号: {orderId}
+          <button
+            onClick={() => setSuccessPhase('ticket')}
+            className="mt-8 text-[11px] text-on-surface-variant flex-center gap-1 active:scale-95 transition-transform"
+          >
+            チケットを表示
+            <span className="i-ph-arrow-right-bold text-sm" />
+          </button>
+        </div>
+      );
+    }
+
+    // ── フェーズ2: チケット表示 ──
+    return (
+      <div className="animate-scaleIn ticket-success-screen space-y-3 -mx-5 -my-5">
+        {/* 入場時の案内バナー */}
+        <div className="mx-3 mt-4 rounded-xl bg-on-surface text-surface px-4 py-3 flex items-start gap-2.5">
+          <span className="i-ph-qr-code-duotone text-2xl shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="font-display font-800 text-sm leading-tight">
+              この画面を入場時にご提示ください
+            </p>
+            <p className="text-[10px] opacity-80 mt-1 leading-snug">
+              電波が繋がらない場合に備え、
+              <span className="font-700">スクリーンショットで保存</span>
+              をおすすめします
+            </p>
+          </div>
+        </div>
+
+        {/* ═══════ チケット ═══════ */}
+        <div className="px-3 pb-3">
+          <TicketCard
+            ticketLabel={selectedTicket?.label || ''}
+            name={name}
+            quantity={quantity}
+            childQuantity={childQuantity}
+            ticketCode={ticketCode}
+            orderId={orderId}
+            total={total}
+          />
+        </div>
+
+        {/* 下部: メール注意 */}
+        <div className="mx-5 mb-5 text-center">
+          <p className="text-[10px] text-on-surface-variant/80 leading-relaxed">
+            メールが届かない場合は迷惑メールフォルダをご確認ください
           </p>
-        )}
+        </div>
       </div>
     );
   }

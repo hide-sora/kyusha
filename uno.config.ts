@@ -33,6 +33,7 @@ export default defineConfig({
     'i-ph-chart-bar-duotone', 'i-ph-eye-duotone', 'i-ph-users-duotone',
     // Verify page icons
     'i-ph-qr-code-duotone', 'i-ph-x-circle-duotone',
+    'i-ph-x-bold',
     // Footer / tokushoho
     'i-ph-scales-duotone', 'i-ph-caret-down',
     // Nav grid cols
@@ -42,9 +43,9 @@ export default defineConfig({
     'i-ph-code-duotone', 'i-ph-handshake-duotone',
     'i-ph-motorcycle-duotone', 'i-ph-armchair-duotone', 'i-ph-squares-four-duotone',
     'i-ph-garage-duotone', 'i-ph-video-camera-duotone', 'i-ph-wrench-duotone',
-    'i-ph-paint-roller-duotone', 'i-ph-microphone-duotone', 'i-ph-camera-duotone',
+    'i-ph-paint-roller-duotone', 'i-ph-microphone-duotone',
     'i-ph-gear-six-duotone', 'i-ph-toolbox-duotone', 'i-ph-car-duotone',
-    'i-ph-storefront-duotone', 'i-ph-users-three-duotone',
+    'i-ph-storefront-duotone',
     'animate-spin',
     'animate-ping',
   ],

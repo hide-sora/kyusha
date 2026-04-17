@@ -2,17 +2,28 @@
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/common/Nav.astro';
 import TicketForm from '../components/Ticket/TicketForm';
+
+// 前売 → 当日の切替: 2026-04-26 00:00 JST
+const PRESALE_CUTOFF_MS = Date.parse('2026-04-26T00:00:00+09:00');
+const isPresale = Date.now() < PRESALE_CUTOFF_MS;
+const pageTitle = isPresale ? '前売券購入' : '当日券購入';
 ---
-<Layout title="チケット購入">
+<Layout title={isPresale ? '前売券購入' : 'チケット購入'}>
   <main class="min-h-screen pb-nav-safe">
     <header class="px-6 pt-12 pb-6 max-w-lg mx-auto">
       <p class="label-upper text-secondary mb-2">チケット</p>
       <h1 class="font-display font-800 text-3xl tracking-tight text-on-surface mb-2">
-        当日券購入
+        {pageTitle}
       </h1>
       <p class="text-xs text-on-surface-variant">
         2026/04/26（日）モビリティリゾートもてぎ 南コース
       </p>
+      {isPresale && (
+        <p class="mt-2 text-[11px] font-700 text-secondary flex items-center gap-1">
+          <span class="i-ph-tag-duotone text-sm" />
+          前売券 ¥1,500（4/25(土) 23:59まで）
+        </p>
+      )}
     </header>
 
     <div class="px-5 max-w-lg mx-auto space-y-5">
@@ -25,13 +36,13 @@ import TicketForm from '../components/Ticket/TicketForm';
       {/* ── 早めの来場を促すメッセージ ── */}
       <div class="bg-error/8 border-2 border-error/30 rounded-xl p-4">
         <p class="font-display font-800 text-sm text-error mb-2 flex items-center gap-1.5">
-          <span class="i-ph-megaphone-duotone text-base" />お早めのご購入を！
+          <span class="i-ph-megaphone-duotone text-base" />速やかなご来場をお願いします
         </p>
         <p class="text-xs text-on-surface leading-relaxed">
-          駐車場の数には限りがあります。専用駐車場（約2,000台）が満車の場合、モビリティリゾートもてぎの駐車場をご利用いただくこととなり、<span class="font-800 text-error">費用がかさみます。</span>
+          当日は<span class="font-800 text-error">9時付近がとても混雑</span>します。専用駐車場が満車になった場合、モビリティリゾートもてぎの駐車場をご利用いただくこととなり、<span class="font-800 text-error">追加料金がかかります。</span>
         </p>
         <p class="text-xs font-700 text-on-surface mt-2">
-          お早めのご来場をおすすめいたします。
+          速やかなご来場をよろしくお願いします。
         </p>
       </div>
 
@@ -41,7 +52,10 @@ import TicketForm from '../components/Ticket/TicketForm';
           <span class="i-ph-info-duotone text-sm text-on-surface-variant" />ご注意
         </h3>
         <ul class="text-[11px] text-on-surface-variant leading-relaxed space-y-1 list-none">
-          <li>当日券にはもてぎ入場料・駐車場代が含まれます</li>
+          <li>もてぎ入場料・駐車場代込み</li>
+          {isPresale
+            ? <li>前売券は4/25(土) 23:59まで。4/26(日) 0:00以降は当日券 ¥2,500 になります</li>
+            : <li>当日券料金です</li>}
           <li>小学生以下は入場無料</li>
           <li>雨天決行</li>
           <li>ペット同伴可（リード着用必須）</li>
