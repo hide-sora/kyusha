@@ -33,6 +33,7 @@ export default defineConfig({
     'i-ph-chart-bar-duotone', 'i-ph-eye-duotone', 'i-ph-users-duotone',
     // Verify page icons
     'i-ph-qr-code-duotone', 'i-ph-x-circle-duotone',
+    'i-ph-x-bold',
     'animate-spin',
     'animate-ping',
   ],
