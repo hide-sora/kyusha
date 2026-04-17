@@ -1,17 +1,29 @@
 ---
 const currentPath = Astro.url.pathname;
 
-const navItems = [
-  { href: '/', label: 'ホーム', icon: 'i-ph-house-duotone' },
-  { href: '/map', label: 'マップ', icon: 'i-ph-map-trifold-duotone' },
-  { href: '/schedule', label: 'スケジュール', icon: 'i-ph-clock-countdown-duotone' },
-  { href: '/auction', label: 'オークション', icon: 'i-ph-gavel-duotone' },
-  { href: '/vote', label: '投票', icon: 'i-ph-trophy-duotone' },
-  { href: '/creators', label: 'ゲスト', icon: 'i-ph-users-three-duotone' },
+const PB_URL = import.meta.env.PUBLIC_PB_URL || 'http://133.18.160.234:8093';
+let votingOpen = false;
+let auctionOpen = false;
+try {
+  const res = await fetch(`${PB_URL}/api/collections/event_config/records?perPage=1`);
+  const data = await res.json();
+  votingOpen = data.items?.[0]?.voting_open ?? false;
+  auctionOpen = data.items?.[0]?.auction_open ?? false;
+} catch {}
+
+const allItems = [
+  { href: '/', label: 'ホーム', icon: 'i-ph-house-duotone', show: true },
+  { href: '/map', label: 'マップ', icon: 'i-ph-map-trifold-duotone', show: true },
+  { href: '/schedule', label: 'スケジュール', icon: 'i-ph-clock-countdown-duotone', show: true },
+  { href: '/auction', label: 'オークション', icon: 'i-ph-gavel-duotone', show: auctionOpen },
+  { href: '/vote', label: '投票', icon: 'i-ph-trophy-duotone', show: votingOpen },
+  { href: '/creators', label: 'ゲスト', icon: 'i-ph-users-three-duotone', show: true },
 ];
+const navItems = allItems.filter(i => i.show);
+const colsClass = `grid-cols-${navItems.length}`;
 ---
 <nav class="fixed bottom-0 left-0 right-0 z-50 glass rounded-t-xl shadow-[0_-20px_40px_rgba(46,51,54,0.06)] safe-area-bottom">
-  <div class="grid grid-cols-6 items-center px-2 pt-3 pb-5 max-w-lg mx-auto">
+  <div class:list={['grid items-center px-2 pt-3 pb-5 max-w-lg mx-auto', colsClass]}>
     {navItems.map(item => {
       const isActive = currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href));
       return (

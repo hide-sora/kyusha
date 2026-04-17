@@ -15,8 +15,9 @@ export const GET: APIRoute = async () => {
       voting_open: config?.voting_open ?? false,
       auction_open: config?.auction_open ?? false,
       map_event: config?.map_event ?? false,
+      ranking_visible: config?.ranking_visible ?? false,
     }));
   } catch {
-    return json(JSON.stringify({ voting_open: false, auction_open: false, map_event: false }));
+    return json(JSON.stringify({ voting_open: false, auction_open: false, map_event: false, ranking_visible: false }));
   }
 };

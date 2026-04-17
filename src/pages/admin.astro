@@ -1,22 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
+const SQUARE_APP_ID = import.meta.env.PUBLIC_SQUARE_APP_ID || '';
+const SQUARE_LOCATION_ID = import.meta.env.PUBLIC_SQUARE_LOCATION_ID || '';
 ---
 <Layout title="コントロールパネル">
   <main class="min-h-screen p-4 max-w-lg mx-auto space-y-4 pb-8">
-    <h1 class="font-display font-800 text-xl text-on-surface pt-6">当日コントロールパネル</h1>
-
-    {/* ステータスカード */}
-    <div class="grid grid-cols-2 gap-3">
-      <div id="card-voting" class="rounded-2xl p-4 text-center transition-colors duration-300 bg-surface-container-low">
-        <p class="text-[10px] font-700 tracking-widest uppercase text-on-surface-variant mb-1">投票</p>
-        <p id="status-voting" class="font-display font-800 text-lg">---</p>
-        <p id="count-voting" class="text-xs text-on-surface-variant mt-1">-</p>
-      </div>
-      <div id="card-auction" class="rounded-2xl p-4 text-center transition-colors duration-300 bg-surface-container-low">
-        <p class="text-[10px] font-700 tracking-widest uppercase text-on-surface-variant mb-1">オークション</p>
-        <p id="status-auction" class="font-display font-800 text-lg">---</p>
-        <p id="count-auction" class="text-xs text-on-surface-variant mt-1">-</p>
-      </div>
+    <div class="flex items-center gap-3 pt-6">
+      <img src="/mito-logo.png" alt="水戸道楽TV" class="h-10 w-auto" />
+      <h1 class="font-display font-800 text-xl text-on-surface">当日コントロールパネル</h1>
     </div>
 
     {/* マップ切替 */}
@@ -36,63 +27,112 @@ import Layout from '../layouts/Layout.astro';
       <p id="map-status" class="text-xs text-on-surface-variant text-center">---</p>
     </section>
 
-    {/* 投票コントロール */}
+    {/* NavBar タブ表示切替 */}
+    <section class="card-elevated p-5 space-y-4">
+      <h2 class="font-display font-700 text-base text-on-surface flex items-center gap-2">
+        <span class="i-ph-list-bold text-lg" />
+        NavBar 表示
+      </h2>
+      <p class="text-xs text-on-surface-variant">下部タブバーの「投票」「オークション」を表示するか切り替えます</p>
+
+      <div>
+        <p class="text-[10px] font-700 tracking-widest uppercase text-on-surface-variant mb-2">投票タブ</p>
+        <div class="flex gap-2">
+          <button id="voting-on" class="flex-1 py-2.5 rounded-xl font-display font-700 text-xs bg-surface-container-highest text-on-surface-variant active:scale-95 transition-transform">
+            表示
+          </button>
+          <button id="voting-off" class="flex-1 py-2.5 rounded-xl font-display font-700 text-xs bg-surface-container-highest text-on-surface-variant active:scale-95 transition-transform">
+            非表示
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-[10px] font-700 tracking-widest uppercase text-on-surface-variant mb-2">オークションタブ</p>
+        <div class="flex gap-2">
+          <button id="auction-on" class="flex-1 py-2.5 rounded-xl font-display font-700 text-xs bg-surface-container-highest text-on-surface-variant active:scale-95 transition-transform">
+            表示
+          </button>
+          <button id="auction-off" class="flex-1 py-2.5 rounded-xl font-display font-700 text-xs bg-surface-container-highest text-on-surface-variant active:scale-95 transition-transform">
+            非表示
+          </button>
+        </div>
+      </div>
+    </section>
+
+    {/* 投票ランキング表示切替 */}
     <section class="card-elevated p-5 space-y-4">
       <h2 class="font-display font-700 text-base text-on-surface flex items-center gap-2">
         <span class="i-ph-trophy-duotone text-lg" />
-        投票
+        投票ランキング
       </h2>
+      <p class="text-xs text-on-surface-variant">/vote ページ下部のランキング表示を切り替えます</p>
       <div class="flex gap-2">
-        <button id="voting-on" class="flex-1 py-3 rounded-xl font-display font-700 text-sm bg-secondary text-on-secondary active:scale-95 transition-transform">
-          ON にする
+        <button id="ranking-on" class="flex-1 py-3 rounded-xl font-display font-700 text-sm bg-surface-container-highest text-on-surface-variant active:scale-95 transition-transform">
+          表示する
         </button>
-        <button id="voting-off" class="flex-1 py-3 rounded-xl font-display font-700 text-sm bg-surface-container-highest text-on-surface-variant active:scale-95 transition-transform">
-          OFF にする
+        <button id="ranking-off" class="flex-1 py-3 rounded-xl font-display font-700 text-sm bg-surface-container-highest text-on-surface-variant active:scale-95 transition-transform">
+          非表示
         </button>
       </div>
-      <button id="clear-votes" class="w-full py-2 rounded-xl text-xs font-600 bg-error/8 text-error active:scale-95 transition-transform">
-        投票データ全削除
-      </button>
+      <p id="ranking-status" class="text-xs text-on-surface-variant text-center">---</p>
     </section>
 
-    {/* オークションコントロール */}
+    {/* 1円決済テスト */}
     <section class="card-elevated p-5 space-y-4">
       <h2 class="font-display font-700 text-base text-on-surface flex items-center gap-2">
-        <span class="i-ph-gavel-duotone text-lg" />
-        オークション
+        <span class="i-ph-credit-card-duotone text-lg" />
+        1円決済テスト
       </h2>
-      <div id="auction-items" class="space-y-3">
-        <p class="text-sm text-on-surface-variant">読み込み中...</p>
-      </div>
-      <div class="flex gap-2 pt-2 border-t border-outline-variant/20">
-        <button id="seed-auction" class="flex-1 py-2 rounded-xl text-xs font-600 bg-primary/10 text-primary active:scale-95 transition-transform">
-          サンプル作成
-        </button>
-        <button id="clear-auction" class="flex-1 py-2 rounded-xl text-xs font-600 bg-error/8 text-error active:scale-95 transition-transform">
-          全削除
-        </button>
-      </div>
-    </section>
+      <p class="text-xs text-on-surface-variant">Square Web Payments SDKで1円決済をテストします</p>
 
-    {/* クイック操作 */}
-    <section class="card-elevated p-5 space-y-4">
-      <h2 class="font-display font-700 text-base text-on-surface flex items-center gap-2">
-        <span class="i-ph-lightning-duotone text-lg" />
-        クイック操作
-      </h2>
-      <div class="grid grid-cols-2 gap-2">
-        <button id="demo-start" class="py-3 rounded-xl bg-gradient-to-r from-primary to-secondary text-on-primary font-display font-700 text-sm active:scale-95 transition-transform">
-          デモ開催
+      <div id="test-pay-form" class="space-y-3">
+        <div id="test-card-container" class="min-h-[100px] bg-surface-container-low rounded-xl p-3"></div>
+        <button id="test-pay-btn" class="w-full py-3 rounded-xl bg-primary text-on-primary font-display font-700 text-sm active:scale-95 transition-transform disabled:opacity-50">
+          1円を決済する
         </button>
-        <button id="reset-all" class="py-3 rounded-xl bg-error/10 text-error font-display font-700 text-sm active:scale-95 transition-transform">
-          全リセット
-        </button>
+        <p id="test-pay-error" class="text-xs text-error hidden"></p>
       </div>
-      <div class="flex flex-wrap gap-2 pt-2">
-        <a href="/vote" class="px-4 py-2 rounded-xl bg-tertiary-container text-on-tertiary-container text-xs font-700">投票ページ</a>
-        <a href="/auction" class="px-4 py-2 rounded-xl bg-secondary-container text-on-secondary-container text-xs font-700">オークション</a>
-        <a href="/auction/board" class="px-4 py-2 rounded-xl bg-surface-container-highest text-on-surface text-xs font-700">価格ボード</a>
-        <a href="/test" class="px-4 py-2 rounded-xl bg-surface-container-high text-on-surface-variant text-xs font-700">旧テスト</a>
+
+      <div id="test-pay-success" class="hidden text-center py-6">
+        <div class="w-16 h-16 rounded-full bg-secondary-container flex-center mx-auto mb-4">
+          <span class="i-ph-check-circle-duotone text-4xl text-secondary" />
+        </div>
+        <h3 class="font-display font-800 text-xl text-on-surface mb-1">決済成功</h3>
+        <p class="text-xs text-on-surface-variant mb-4">ご購入ありがとうございます</p>
+
+        <div class="bg-surface-container-low rounded-xl p-4 mb-4">
+          <div class="flex items-center justify-center gap-6">
+            <div>
+              <p class="text-[10px] text-on-surface-variant">大人</p>
+              <p class="font-display font-800 text-3xl text-on-surface">1<span class="text-xs font-600 ml-0.5">名</span></p>
+            </div>
+            <div class="w-px h-8 bg-outline-variant/30" />
+            <div>
+              <p class="text-[10px] text-on-surface-variant">子供</p>
+              <p class="font-display font-800 text-3xl text-on-surface">0<span class="text-xs font-600 ml-0.5">名</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-amber-100 text-amber-900 rounded-xl p-3 mb-3 flex items-center gap-2">
+          <span class="i-ph-hand-waving-duotone text-lg shrink-0" />
+          <p class="text-xs font-700 text-left">この画面をスタッフにお見せください</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mb-4">
+          <div class="bg-surface-container-low rounded-xl p-3 text-center">
+            <span class="i-ph-camera-duotone text-xl text-on-surface-variant mb-1 block mx-auto" />
+            <p class="text-[10px] text-on-surface-variant leading-tight">スクショで<br/>保存しておく</p>
+          </div>
+          <div class="bg-surface-container-low rounded-xl p-3 text-center">
+            <span class="i-ph-envelope-simple-duotone text-xl text-on-surface-variant mb-1 block mx-auto" />
+            <p class="text-[10px] text-on-surface-variant leading-tight">メールでも<br/>送信済み</p>
+          </div>
+        </div>
+
+        <p id="test-pay-ticket" class="text-[10px] text-on-surface-variant/60 font-mono"></p>
+        <button id="test-pay-again" class="mt-4 text-xs text-on-surface-variant underline">もう一度テストする</button>
       </div>
     </section>
 
@@ -101,13 +141,13 @@ import Layout from '../layouts/Layout.astro';
   </main>
 </Layout>
 
-<script>
-  const log = document.getElementById('log')!;
-  function addLog(msg: string) {
+<script define:vars={{ SQUARE_APP_ID, SQUARE_LOCATION_ID }}>
+  const log = document.getElementById('log');
+  function addLog(msg) {
     log.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + log.textContent;
   }
 
-  async function api(action: string, extra: Record<string, any> = {}) {
+  async function api(action, extra = {}) {
     addLog(`${action} ...`);
     try {
       const res = await fetch('/api/admin', {
@@ -118,204 +158,162 @@ import Layout from '../layouts/Layout.astro';
       const data = await res.json();
       addLog(`${action} → OK`);
       return data;
-    } catch (e: any) {
+    } catch (e) {
       addLog(`${action} → ERROR: ${e.message}`);
       return { error: e.message };
     }
   }
 
-  /* ---------- ステータス更新 ---------- */
-
   async function refreshStatus() {
     const { config } = await api('get_config');
     if (!config) return;
 
-    // 投票
-    const votingOn = config.voting_open;
-    const cardV = document.getElementById('card-voting')!;
-    const statusV = document.getElementById('status-voting')!;
-    statusV.textContent = votingOn ? 'ON' : 'OFF';
-    cardV.className = `rounded-2xl p-4 text-center transition-colors duration-300 ${
-      votingOn ? 'bg-secondary text-on-secondary' : 'bg-surface-container-low text-on-surface'
-    }`;
-
-    // オークション
-    const auctionOn = config.auction_open;
-    const cardA = document.getElementById('card-auction')!;
-    const statusA = document.getElementById('status-auction')!;
-    statusA.textContent = auctionOn ? 'ON' : 'OFF';
-    cardA.className = `rounded-2xl p-4 text-center transition-colors duration-300 ${
-      auctionOn ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface'
-    }`;
-
     // マップ
     const mapEvent = config.map_event;
-    const mapStatus = document.getElementById('map-status')!;
-    mapStatus.textContent = mapEvent ? '現在: イベントマップ' : '現在: 通常マップ';
-    const btnDefault = document.getElementById('map-default')!;
-    const btnEvent = document.getElementById('map-event')!;
-    btnDefault.className = `flex-1 py-3 rounded-xl font-display font-700 text-sm active:scale-95 transition-transform ${
+    document.getElementById('map-status').textContent = mapEvent ? '現在: イベントマップ' : '現在: 通常マップ';
+    document.getElementById('map-default').className = `flex-1 py-3 rounded-xl font-display font-700 text-sm active:scale-95 transition-transform ${
       !mapEvent ? 'bg-on-surface text-surface' : 'bg-surface-container-highest text-on-surface-variant'
     }`;
-    btnEvent.className = `flex-1 py-3 rounded-xl font-display font-700 text-sm active:scale-95 transition-transform ${
+    document.getElementById('map-event').className = `flex-1 py-3 rounded-xl font-display font-700 text-sm active:scale-95 transition-transform ${
       mapEvent ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant'
     }`;
 
-    // 件数
-    const { count: voteCount } = await api('vote_count');
-    document.getElementById('count-voting')!.textContent = `${voteCount ?? 0} 票`;
+    // NavBar 投票/オークション表示
+    const votingOn = !!config.voting_open;
+    const auctionOn = !!config.auction_open;
+    document.getElementById('voting-on').className = `flex-1 py-2.5 rounded-xl font-display font-700 text-xs active:scale-95 transition-transform ${
+      votingOn ? 'bg-secondary text-on-secondary' : 'bg-surface-container-highest text-on-surface-variant'
+    }`;
+    document.getElementById('voting-off').className = `flex-1 py-2.5 rounded-xl font-display font-700 text-xs active:scale-95 transition-transform ${
+      !votingOn ? 'bg-on-surface text-surface' : 'bg-surface-container-highest text-on-surface-variant'
+    }`;
+    document.getElementById('auction-on').className = `flex-1 py-2.5 rounded-xl font-display font-700 text-xs active:scale-95 transition-transform ${
+      auctionOn ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant'
+    }`;
+    document.getElementById('auction-off').className = `flex-1 py-2.5 rounded-xl font-display font-700 text-xs active:scale-95 transition-transform ${
+      !auctionOn ? 'bg-on-surface text-surface' : 'bg-surface-container-highest text-on-surface-variant'
+    }`;
 
-    const { count: bidCount } = await api('bid_count');
-    document.getElementById('count-auction')!.textContent = `${bidCount ?? 0} 入札`;
+    // ランキング
+    const rankingOn = !!config.ranking_visible;
+    document.getElementById('ranking-status').textContent = rankingOn ? '現在: 表示中' : '現在: 非表示';
+    document.getElementById('ranking-on').className = `flex-1 py-3 rounded-xl font-display font-700 text-sm active:scale-95 transition-transform ${
+      rankingOn ? 'bg-secondary text-on-secondary' : 'bg-surface-container-highest text-on-surface-variant'
+    }`;
+    document.getElementById('ranking-off').className = `flex-1 py-3 rounded-xl font-display font-700 text-sm active:scale-95 transition-transform ${
+      !rankingOn ? 'bg-on-surface text-surface' : 'bg-surface-container-highest text-on-surface-variant'
+    }`;
   }
 
-  /* ---------- オークションアイテム一覧 ---------- */
-
-  async function refreshAuction() {
-    const data = await api('list_auction');
-    const container = document.getElementById('auction-items')!;
-    const items = data.items || [];
-
-    if (items.length === 0) {
-      container.innerHTML = '<p class="text-sm text-on-surface-variant text-center py-4">出品物なし</p>';
-      return;
-    }
-
-    container.innerHTML = items.map((item: any) => `
-      <div class="bg-surface-container-low rounded-xl p-4 space-y-3" data-id="${item.id}">
-        <div class="flex items-start justify-between gap-2">
-          <div class="min-w-0">
-            <p class="font-display font-700 text-sm text-on-surface">${item.title}</p>
-            <p class="text-[10px] text-on-surface-variant">${item.youtuber_name}</p>
-          </div>
-          <span class="text-[10px] font-700 px-2 py-0.5 rounded-lg shrink-0 ${
-            item.status === 'live' ? 'bg-error text-on-error' :
-            item.status === 'ended' ? 'bg-surface-container-high text-on-surface-variant' :
-            'bg-surface-container-highest text-on-surface-variant'
-          }">${item.status === 'live' ? 'LIVE' : item.status === 'ended' ? '終了' : '開始前'}</span>
-        </div>
-
-        <!-- 価格表示・調整 -->
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-600 text-on-surface-variant shrink-0">現在価格</span>
-          <span class="font-display font-800 text-base text-on-surface tabular-nums">¥${(item.current_price || item.start_price).toLocaleString()}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <input type="number" value="${item.current_price || item.start_price}" step="100" min="0"
-            class="price-input flex-1 bg-surface-container-highest rounded-lg px-3 py-1.5 text-sm text-on-surface outline-none tabular-nums font-display font-700"
-            data-item-id="${item.id}" />
-          <button class="price-update px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-700 active:scale-90 transition-transform"
-            data-item-id="${item.id}">更新</button>
-        </div>
-
-        <!-- ステータスボタン -->
-        <div class="flex gap-1.5">
-          ${['upcoming', 'live', 'ended'].map(s => `
-            <button class="status-btn flex-1 py-1.5 rounded-lg text-[10px] font-700 transition-all active:scale-90 ${
-              item.status === s
-                ? (s === 'live' ? 'bg-error text-on-error' : 'bg-on-surface text-surface')
-                : 'bg-surface-container-highest text-on-surface-variant'
-            }" data-item-id="${item.id}" data-status="${s}">
-              ${s === 'upcoming' ? '開始前' : s === 'live' ? 'LIVE' : '終了'}
-            </button>
-          `).join('')}
-        </div>
-      </div>
-    `).join('');
-
-    // 価格更新
-    container.querySelectorAll('.price-update').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const el = e.currentTarget as HTMLElement;
-        const itemId = el.dataset.itemId!;
-        const input = container.querySelector(`.price-input[data-item-id="${itemId}"]`) as HTMLInputElement;
-        await api('update_auction_price', { itemId, price: Number(input.value) });
-        refreshAuction();
-        refreshStatus();
-      });
-    });
-
-    // ステータス変更
-    container.querySelectorAll('.status-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const el = e.currentTarget as HTMLElement;
-        await api('update_auction_status', { itemId: el.dataset.itemId!, status: el.dataset.status! });
-        refreshAuction();
-        refreshStatus();
-      });
-    });
-  }
-
-  /* ---------- ボタンイベント ---------- */
-
-  // マップ切替
-  document.getElementById('map-default')!.addEventListener('click', async () => {
+  document.getElementById('map-default').addEventListener('click', async () => {
     await api('set_config', { map_event: false });
     refreshStatus();
   });
-  document.getElementById('map-event')!.addEventListener('click', async () => {
+  document.getElementById('map-event').addEventListener('click', async () => {
     await api('set_config', { map_event: true });
     refreshStatus();
   });
-
-  // 投票 ON / OFF
-  document.getElementById('voting-on')!.addEventListener('click', async () => {
+  document.getElementById('voting-on').addEventListener('click', async () => {
     await api('set_config', { voting_open: true });
     refreshStatus();
   });
-  document.getElementById('voting-off')!.addEventListener('click', async () => {
+  document.getElementById('voting-off').addEventListener('click', async () => {
     await api('set_config', { voting_open: false });
     refreshStatus();
   });
-
-  // 投票データ削除
-  document.getElementById('clear-votes')!.addEventListener('click', async () => {
-    if (confirm('投票データを全削除しますか？')) {
-      await api('clear_votes');
-      refreshStatus();
-    }
+  document.getElementById('auction-on').addEventListener('click', async () => {
+    await api('set_config', { auction_open: true });
+    refreshStatus();
+  });
+  document.getElementById('auction-off').addEventListener('click', async () => {
+    await api('set_config', { auction_open: false });
+    refreshStatus();
+  });
+  document.getElementById('ranking-on').addEventListener('click', async () => {
+    await api('set_config', { ranking_visible: true });
+    refreshStatus();
+  });
+  document.getElementById('ranking-off').addEventListener('click', async () => {
+    await api('set_config', { ranking_visible: false });
+    refreshStatus();
   });
 
-  // サンプル作成
-  document.getElementById('seed-auction')!.addEventListener('click', async () => {
-    await api('seed_auction');
-    refreshAuction();
-  });
-
-  // オークション全削除
-  document.getElementById('clear-auction')!.addEventListener('click', async () => {
-    if (confirm('オークションデータを全削除しますか？')) {
-      await api('clear_auction');
-      refreshAuction();
-      refreshStatus();
-    }
-  });
-
-  // デモ開催
-  document.getElementById('demo-start')!.addEventListener('click', async () => {
-    if (confirm('デモを開催しますか？（既存データは全削除されます）')) {
-      const btn = document.getElementById('demo-start') as HTMLButtonElement;
-      btn.disabled = true; btn.textContent = '準備中...';
-      await api('demo_start');
-      btn.disabled = false; btn.textContent = 'デモ開催';
-      refreshStatus();
-      refreshAuction();
-    }
-  });
-
-  // 全リセット
-  document.getElementById('reset-all')!.addEventListener('click', async () => {
-    if (confirm('全データをリセットしますか？（投票・オークション・設定すべて初期化）')) {
-      const btn = document.getElementById('reset-all') as HTMLButtonElement;
-      btn.disabled = true; btn.textContent = 'リセット中...';
-      await api('reset_all');
-      btn.disabled = false; btn.textContent = '全リセット';
-      refreshStatus();
-      refreshAuction();
-    }
-  });
-
-  /* ---------- 初期読み込み ---------- */
   refreshStatus();
-  refreshAuction();
+
+  // Square Web Payments SDK
+  async function initSquare() {
+    if (!SQUARE_APP_ID || !SQUARE_LOCATION_ID) {
+      document.getElementById('test-pay-error').textContent = 'Square 設定が見つかりません';
+      document.getElementById('test-pay-error').classList.remove('hidden');
+      return;
+    }
+
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://web.squarecdn.com/v1/square.js';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+
+    const payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
+    const card = await payments.card();
+    await card.attach('#test-card-container');
+
+    document.getElementById('test-pay-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('test-pay-btn');
+      const err = document.getElementById('test-pay-error');
+      err.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = '決済中...';
+
+      try {
+        const result = await card.tokenize();
+        if (result.status !== 'OK') {
+          throw new Error(result.errors?.[0]?.message || 'トークン化失敗');
+        }
+
+        const res = await fetch('/api/payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sourceId: result.token,
+            ticketType: 'test_1yen',
+            quantity: 1,
+            childQuantity: 0,
+            name: 'テスト',
+            email: 'test@example.com',
+            amount: 1,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || '決済失敗');
+
+        addLog(`決済成功: ${data.ticketCode || data.orderId || 'OK'}`);
+        document.getElementById('test-pay-form').classList.add('hidden');
+        document.getElementById('test-pay-success').classList.remove('hidden');
+        if (data.ticketCode) {
+          document.getElementById('test-pay-ticket').textContent = `チケットNo: ${data.ticketCode}`;
+        }
+      } catch (e) {
+        err.textContent = e.message;
+        err.classList.remove('hidden');
+        addLog(`決済失敗: ${e.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '1円を決済する';
+      }
+    });
+  }
+
+  document.getElementById('test-pay-again').addEventListener('click', () => {
+    document.getElementById('test-pay-success').classList.add('hidden');
+    document.getElementById('test-pay-form').classList.remove('hidden');
+  });
+
+  initSquare().catch(e => {
+    addLog(`Square init失敗: ${e.message}`);
+    document.getElementById('test-pay-error').textContent = e.message;
+    document.getElementById('test-pay-error').classList.remove('hidden');
+  });
 </script>

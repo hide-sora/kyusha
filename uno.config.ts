@@ -34,6 +34,18 @@ export default defineConfig({
     // Verify page icons
     'i-ph-qr-code-duotone', 'i-ph-x-circle-duotone',
     'i-ph-x-bold',
+    // Footer / tokushoho
+    'i-ph-scales-duotone', 'i-ph-caret-down',
+    // Nav grid cols
+    'grid-cols-4', 'grid-cols-5', 'grid-cols-6',
+    // Success screen icons
+    'i-ph-camera-duotone', 'i-ph-envelope-simple-duotone', 'i-ph-hand-waving-duotone',
+    'i-ph-code-duotone', 'i-ph-handshake-duotone',
+    'i-ph-motorcycle-duotone', 'i-ph-armchair-duotone', 'i-ph-squares-four-duotone',
+    'i-ph-garage-duotone', 'i-ph-video-camera-duotone', 'i-ph-wrench-duotone',
+    'i-ph-paint-roller-duotone', 'i-ph-microphone-duotone',
+    'i-ph-gear-six-duotone', 'i-ph-toolbox-duotone', 'i-ph-car-duotone',
+    'i-ph-storefront-duotone',
     'animate-spin',
     'animate-ping',
   ],
