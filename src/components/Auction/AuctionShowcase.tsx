@@ -1,49 +1,13 @@
-import { useState } from 'react';
 import { showcaseItems } from '../../data/auctionShowcase';
 
-function ImageCarousel({ images }: { images: string[] }) {
-  const [idx, setIdx] = useState(0);
-
-  const stopNav = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
+function CardImage({ images }: { images: string[] }) {
   return (
     <div className="absolute inset-0">
       <img
-        src={images[idx]}
+        src={images[0]}
         alt=""
-        className="w-full h-full object-cover transition-opacity duration-300"
+        className="w-full h-full object-cover"
       />
-      {images.length > 1 && (
-        <>
-          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-            {images.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={(e) => { stopNav(e); setIdx(i); }}
-                className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${i === idx ? 'bg-white w-4' : 'bg-white/40'}`}
-              />
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={(e) => { stopNav(e); setIdx((idx - 1 + images.length) % images.length); }}
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 flex-center text-white/70 text-sm cursor-pointer z-20"
-          >
-            <span className="i-ph-caret-left-bold" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { stopNav(e); setIdx((idx + 1) % images.length); }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 flex-center text-white/70 text-sm cursor-pointer z-20"
-          >
-            <span className="i-ph-caret-right-bold" />
-          </button>
-        </>
-      )}
     </div>
   );
 }
@@ -51,7 +15,7 @@ function ImageCarousel({ images }: { images: string[] }) {
 export default function AuctionShowcase() {
   return (
     <div className="space-y-4 px-5 max-w-lg mx-auto">
-      {showcaseItems.map((item) => (
+      {showcaseItems.filter((item) => !item.hidden).map((item) => (
         <a
           key={item.lot}
           href={`/auction/${String(item.lot).padStart(2, '0')}`}
@@ -60,7 +24,7 @@ export default function AuctionShowcase() {
         >
           {/* Photo carousel or decorative bg */}
           {item.images && item.images.length > 0 ? (
-            <ImageCarousel images={item.images} />
+            <CardImage images={item.images} />
           ) : (
             <>
               <div className="absolute inset-0 opacity-[0.03]" style={{
