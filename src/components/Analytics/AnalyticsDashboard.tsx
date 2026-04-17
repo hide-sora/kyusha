@@ -22,7 +22,10 @@ interface Referrer {
 }
 
 interface AnalyticsData {
+  setupRequired?: boolean;
+  timestampsAvailable?: boolean;
   totalPV: number;
+  botHits?: number;
   todayPV: number;
   uniqueVisitors: number;
   pages: PageStat[];
@@ -59,15 +62,20 @@ function formatDate(key: string): string {
 export default function AnalyticsDashboard() {
   const [data, setData] = useState<AnalyticsData>(EMPTY);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
       const res = await fetch('/api/analytics');
-      if (res.ok) {
-        setData(await res.json());
+      const body = await res.json();
+      if (!res.ok) {
+        setError(body?.error || `HTTP ${res.status}`);
+      } else {
+        setError(null);
+        setData(body);
       }
-    } catch {
-      // ignore
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'fetch failed');
     } finally {
       setLoading(false);
     }
@@ -87,24 +95,100 @@ export default function AnalyticsDashboard() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="mx-4 my-6 rounded-2xl bg-surface-container-lowest p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="i-ph-warning-circle-duotone text-xl text-error" />
+          <h2 className="font-display font-700 text-base text-on-surface">データ取得エラー</h2>
+        </div>
+        <p className="text-sm text-on-surface-variant">{error}</p>
+      </div>
+    );
+  }
+
+  if (data.setupRequired) {
+    return (
+      <div className="mx-4 my-6 rounded-2xl bg-surface-container-lowest p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="i-ph-info-duotone text-xl text-on-surface-variant" />
+          <h2 className="font-display font-700 text-base text-on-surface">初期セットアップが必要です</h2>
+        </div>
+        <p className="text-sm text-on-surface-variant mb-4">
+          PocketBase に <code className="font-mono text-xs bg-surface-container px-1.5 py-0.5 rounded">page_views</code> コレクションがありません。<br />
+          PB 管理画面（<code className="font-mono text-xs">/_/</code>）から以下のコレクションを作成してください。
+        </p>
+        <div className="rounded-xl bg-surface-container p-4 text-xs space-y-2">
+          <div><span className="text-on-surface-variant">Name:</span> <code className="font-mono">page_views</code></div>
+          <div className="text-on-surface-variant">フィールド:</div>
+          <ul className="ml-4 space-y-0.5 font-mono">
+            <li>• path (Plain text)</li>
+            <li>• device_id (Plain text)</li>
+            <li>• referrer (Plain text)</li>
+            <li>• user_agent (Plain text)</li>
+          </ul>
+          <div className="text-on-surface-variant mt-2">API Rules（全て空にして公開）:</div>
+          <ul className="ml-4 space-y-0.5 font-mono">
+            <li>• List: <code>""</code></li>
+            <li>• View: <code>""</code></li>
+            <li>• Create: <code>""</code></li>
+          </ul>
+        </div>
+        <p className="text-xs text-on-surface-variant mt-3">
+          作成後、このページを再読み込みするとアクセス記録が開始されます。
+        </p>
+      </div>
+    );
+  }
+
   const maxPagePV = Math.max(1, ...data.pages.map((p) => p.pv));
   const maxHourly = Math.max(1, ...data.hourly.map((h) => h.pv));
   const maxDaily = Math.max(1, ...data.daily.map((d) => d.pv));
 
   return (
     <div className="flex flex-col gap-4 px-4 py-5">
+      {/* 追加セットアップが必要な場合の案内 */}
+      {(!data.timestampsAvailable || data.uniqueVisitors === 0) && data.totalPV > 0 && (
+        <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4">
+          <div className="flex items-start gap-2">
+            <span className="i-ph-warning-duotone text-lg text-amber-500 mt-0.5" />
+            <div className="flex-1 text-xs text-on-surface leading-relaxed">
+              <p className="font-700 mb-1">追加フィールドを設定するとより詳細に分析できます</p>
+              <p className="text-on-surface-variant">
+                PocketBase の <code className="font-mono bg-surface-container px-1 rounded">page_views</code> コレクションに以下を追加してください:
+              </p>
+              <ul className="mt-1 ml-4 space-y-0.5 text-on-surface-variant">
+                {!data.timestampsAvailable && <li>• <code className="font-mono">created</code> (Autodate) — 時間別・日別集計用</li>}
+                {data.uniqueVisitors === 0 && <li>• <code className="font-mono">device_id</code> (Plain text) — ユニーク訪問者数用</li>}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* サマリーカード */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl p-5 text-center bg-surface-container-lowest shadow-sm">
-          <p className="text-sm text-on-surface-variant mb-2">総アクセス数</p>
-          <p className="font-display font-800 text-3xl tabular-nums text-on-surface">
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-2xl p-4 text-center bg-surface-container-lowest shadow-sm">
+          <p className="text-xs text-on-surface-variant mb-2">総アクセス</p>
+          <p className="font-display font-800 text-2xl tabular-nums text-on-surface">
             {data.totalPV.toLocaleString()}
           </p>
+          {data.botHits !== undefined && data.botHits > 0 && (
+            <p className="text-[10px] text-on-surface-variant/70 mt-1">
+              bot {data.botHits.toLocaleString()} 除外
+            </p>
+          )}
         </div>
-        <div className="rounded-2xl p-5 text-center bg-surface-container-lowest shadow-sm">
-          <p className="text-sm text-on-surface-variant mb-2">本日のアクセス</p>
-          <p className="font-display font-800 text-3xl tabular-nums text-on-surface">
+        <div className="rounded-2xl p-4 text-center bg-surface-container-lowest shadow-sm">
+          <p className="text-xs text-on-surface-variant mb-2">本日</p>
+          <p className="font-display font-800 text-2xl tabular-nums text-on-surface">
             {data.todayPV.toLocaleString()}
+          </p>
+        </div>
+        <div className="rounded-2xl p-4 text-center bg-surface-container-lowest shadow-sm">
+          <p className="text-xs text-on-surface-variant mb-2">ユニーク</p>
+          <p className="font-display font-800 text-2xl tabular-nums text-on-surface">
+            {data.uniqueVisitors.toLocaleString()}
           </p>
         </div>
       </div>
