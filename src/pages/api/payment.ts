@@ -55,6 +55,7 @@ export const POST: APIRoute = async ({ request }) => {
     name?: string;
     email?: string;
     amount?: number;
+    idempotencyKey?: string;
   };
 
   try {
@@ -66,14 +67,23 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
-  const { sourceId, ticketType, quantity = 1, childQuantity = 0, name, email, amount } = body;
+  const { sourceId, ticketType, quantity = 1, childQuantity = 0, name, email, amount, idempotencyKey } = body;
 
-  if (!sourceId || !ticketType || !name || !email) {
+  if (typeof sourceId !== 'string' || typeof ticketType !== 'string' || typeof name !== 'string' || typeof email !== 'string') {
     return new Response(
       JSON.stringify({ success: false, error: '必須項目が不足しています' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   }
+  if (!sourceId || !ticketType || !name.trim() || !email.trim()) {
+    return new Response(
+      JSON.stringify({ success: false, error: '必須項目が不足しています' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedName = name.trim();
 
   // 金額の整合性チェック（サーバー側で再計算）
   const unitPrice = VALID_PRICES[ticketType];
@@ -83,6 +93,14 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   }
+  if (typeof quantity !== 'number' || !Number.isInteger(quantity) ||
+      typeof childQuantity !== 'number' || !Number.isInteger(childQuantity)) {
+    return new Response(
+      JSON.stringify({ success: false, error: '枚数が不正です' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  const safeChildQuantity = Math.max(0, Math.min(10, childQuantity));
   const validAmount = unitPrice * Math.max(1, Math.min(10, quantity));
 
   if (amount !== validAmount) {
@@ -139,63 +157,100 @@ export const POST: APIRoute = async ({ request }) => {
         : SquareEnvironment.Sandbox,
   });
 
+  // クライアントから渡された idempotencyKey を優先（リトライ時の二重決済を Square 側で防止）
+  const squareIdempotencyKey = (typeof idempotencyKey === 'string' && idempotencyKey.length >= 16 && idempotencyKey.length <= 45)
+    ? idempotencyKey
+    : randomUUID();
+
   try {
     const response = await client.payments.create({
       sourceId,
-      idempotencyKey: randomUUID(),
+      idempotencyKey: squareIdempotencyKey,
       amountMoney: {
         amount: BigInt(validAmount),
         currency: 'JPY',
       },
       note: `旧車サミット2026 - ${TICKET_LABELS[ticketType]} × ${quantity}`,
-      buyerEmailAddress: email,
+      buyerEmailAddress: normalizedEmail,
       billingAddress: {
-        firstName: name,
+        firstName: normalizedName,
       },
     });
 
     if (response.payment?.status === 'COMPLETED') {
-      const ticketCode = generateTicketCode();
       const orderId = response.payment.id ?? '';
 
-      // PocketBase に購入記録を保存
-      fetch(`${PB_URL}/api/collections/ticket_purchases/records`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': pbToken },
-        body: JSON.stringify({
-          ticket_type: ticketType,
-          quantity,
-          child_quantity: childQuantity,
-          payment_id: orderId,
-          ticket_code: ticketCode,
-          buyer_name: name,
-          buyer_email: email,
-        }),
-      }).catch(e => console.error('[PB] record error:', e));
+      // チケットコードを DB で一意になるまでリトライ生成（最大5回）
+      let ticketCode = '';
+      for (let i = 0; i < 5; i++) {
+        const candidate = generateTicketCode();
+        try {
+          const checkRes = await fetch(
+            `${PB_URL}/api/collections/ticket_purchases/records?filter=ticket_code%3D%22${encodeURIComponent(candidate)}%22&perPage=1`,
+            { headers: { Authorization: pbToken } }
+          );
+          const checkData = await checkRes.json() as { totalItems?: number };
+          if ((checkData.totalItems ?? 0) === 0) {
+            ticketCode = candidate;
+            break;
+          }
+        } catch (e) {
+          console.error('[PB] ticket_code uniqueness check error:', e);
+          ticketCode = candidate;
+          break;
+        }
+      }
+      if (!ticketCode) ticketCode = generateTicketCode();
 
-      // n8n webhook でメール送信（fire-and-forget）
+      // PocketBase に購入記録を保存（await — 失敗時は決済済みだがログを残す）
+      try {
+        const pbRes = await fetch(`${PB_URL}/api/collections/ticket_purchases/records`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': pbToken },
+          body: JSON.stringify({
+            ticket_type: ticketType,
+            quantity,
+            child_quantity: safeChildQuantity,
+            payment_id: orderId,
+            ticket_code: ticketCode,
+            buyer_name: normalizedName,
+            buyer_email: normalizedEmail,
+          }),
+        });
+        if (!pbRes.ok) {
+          const errText = await pbRes.text().catch(() => '');
+          console.error('[PB] record save failed:', pbRes.status, errText, 'orderId:', orderId, 'ticketCode:', ticketCode);
+        }
+      } catch (e) {
+        console.error('[PB] record error:', e, 'orderId:', orderId, 'ticketCode:', ticketCode);
+      }
+
+      // n8n webhook でメール送信（fire-and-forget — 決済は成功済み、失敗してもチケットは localStorage と PB に残る）
       const n8nUrl = import.meta.env.N8N_WEBHOOK_URL;
       if (n8nUrl) {
         const emailHtml = generateTicketEmailHtml({
           ticketLabel: TICKET_LABELS[ticketType],
-          name,
+          name: normalizedName,
           quantity,
-          childQuantity,
+          childQuantity: safeChildQuantity,
           ticketCode,
           orderId,
           total: validAmount,
         });
 
+        // n8n がダウンしても決済フローを止めないよう 5秒タイムアウト
+        const n8nController = new AbortController();
+        const n8nTimeout = setTimeout(() => n8nController.abort(), 5000);
         fetch(n8nUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email,
-            name,
+            email: normalizedEmail,
+            name: normalizedName,
             ticketType,
             ticketLabel: TICKET_LABELS[ticketType],
             quantity,
-            childQuantity,
+            childQuantity: safeChildQuantity,
             total: validAmount,
             orderId,
             ticketCode,
@@ -204,7 +259,10 @@ export const POST: APIRoute = async ({ request }) => {
             emailHtml,
             emailSubject: `【旧車サミット2026】電子チケット（${TICKET_LABELS[ticketType]}）`,
           }),
-        }).catch(e => console.error('[n8n] webhook error:', e));
+          signal: n8nController.signal,
+        })
+          .catch(e => console.error('[n8n] webhook error:', e, 'orderId:', orderId))
+          .finally(() => clearTimeout(n8nTimeout));
       }
 
       return new Response(

@@ -25,6 +25,7 @@ export default function AuctionPayment({ itemId, itemTitle, amount }: Props) {
   const [paymentId, setPaymentId] = useState('');
   const cardRef = useRef<any>(null);
   const submittingRef = useRef(false);
+  const idempotencyKeyRef = useRef<string>('');
 
   // Square SDK init
   useEffect(() => {
@@ -77,6 +78,15 @@ export default function AuctionPayment({ itemId, itemTitle, amount }: Props) {
     submittingRef.current = true;
     setLoading(true);
     setError('');
+
+    // リトライ時も同じ idempotencyKey を再利用（Square 側で二重決済を防止）
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current =
+        (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+    }
+
     try {
       const tokenResult = await cardRef.current.tokenize();
       if (tokenResult.status !== 'OK') {
@@ -88,7 +98,14 @@ export default function AuctionPayment({ itemId, itemTitle, amount }: Props) {
       const res = await fetch('/api/auction-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sourceId: tokenResult.token, itemId, amount, name, email }),
+        body: JSON.stringify({
+          sourceId: tokenResult.token,
+          itemId,
+          amount,
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          idempotencyKey: idempotencyKeyRef.current,
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -99,6 +116,7 @@ export default function AuctionPayment({ itemId, itemTitle, amount }: Props) {
       }
       setPaymentId(data.paymentId || '');
       setStep('done');
+      idempotencyKeyRef.current = '';
     } catch {
       setError('通信エラーが発生しました');
       setLoading(false);

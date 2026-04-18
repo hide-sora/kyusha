@@ -33,7 +33,7 @@ export default function VotePage() {
   const [filterZone, setFilterZone] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
-  const msgTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const msgTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [voteState, setVoteState] = useState(getVoteState);
   const [myVotes, setMyVotes] = useState<string[]>([]);
   const [rankingVisible, setRankingVisible] = useState(false);

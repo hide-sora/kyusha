@@ -154,12 +154,21 @@ export default function TicketForm() {
   }, [step]);
 
   const submittingRef = useRef(false);
+  const idempotencyKeyRef = useRef<string>('');
 
   const handlePayment = useCallback(async () => {
     if (!cardRef.current || loading || submittingRef.current) return;
     submittingRef.current = true;
     setLoading(true);
     setError('');
+
+    // リトライ時も同じ idempotencyKey を再利用（Square 側で二重決済を防止）
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current =
+        (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+    }
 
     try {
       const tokenResult = await cardRef.current.tokenize();
@@ -174,6 +183,9 @@ export default function TicketForm() {
         return;
       }
 
+      const trimmedName = name.trim();
+      const normalizedEmail = email.trim().toLowerCase();
+
       const res = await fetch('/api/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -182,9 +194,10 @@ export default function TicketForm() {
           ticketType,
           quantity,
           childQuantity,
-          name,
-          email,
+          name: trimmedName,
+          email: normalizedEmail,
           amount: total,
+          idempotencyKey: idempotencyKeyRef.current,
         }),
       });
 
@@ -193,30 +206,36 @@ export default function TicketForm() {
       if (!res.ok || !data.success) {
         setError(data.error || 'お支払いに失敗しました。もう一度お試しください。');
         setLoading(false);
+        submittingRef.current = false;
         return;
       }
 
       setOrderId(data.orderId || '');
       setTicketCode(data.ticketCode || '');
       setStep('success');
+      idempotencyKeyRef.current = '';
 
       // localStorage に保存 → 以降はFABからいつでも呼び出せる
-      saveMyTicket({
-        ticketLabel: selectedTicket.label,
-        name,
-        quantity,
-        childQuantity,
-        ticketCode: data.ticketCode || '',
-        orderId: data.orderId || '',
-        total,
-        purchasedAt: Date.now(),
-      });
+      try {
+        saveMyTicket({
+          ticketLabel: selectedTicket.label,
+          name: trimmedName,
+          quantity,
+          childQuantity,
+          ticketCode: data.ticketCode || '',
+          orderId: data.orderId || '',
+          total,
+          purchasedAt: Date.now(),
+        });
+      } catch (e) {
+        console.error('[myTicket] save error:', e);
+      }
     } catch {
       setError('通信エラーが発生しました。もう一度お試しください。');
       setLoading(false);
       submittingRef.current = false;
     }
-  }, [loading, ticketType, quantity, childQuantity, name, email, total]);
+  }, [loading, ticketType, quantity, childQuantity, name, email, total, selectedTicket.label]);
 
   // ── 完了画面 ──────────────────────────────────
   if (step === 'success') {
