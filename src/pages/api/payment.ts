@@ -263,6 +263,50 @@ export const POST: APIRoute = async ({ request }) => {
         })
           .catch(e => console.error('[n8n] webhook error:', e, 'orderId:', orderId))
           .finally(() => clearTimeout(n8nTimeout));
+
+        // 管理者宛通知（fire-and-forget、5秒タイムアウト）
+        const adminController = new AbortController();
+        const adminTimeout = setTimeout(() => adminController.abort(), 5000);
+        const adminHtml = `<!DOCTYPE html>
+<html><body style="font-family:'Helvetica Neue',Arial,sans-serif;background:#f4f4f4;padding:24px;">
+  <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:12px;padding:24px;">
+    <p style="margin:0 0 8px;color:#c9a84c;font-size:11px;letter-spacing:2px;font-weight:700;">KYUSHA SUMMIT 2026 / ADMIN</p>
+    <h2 style="margin:0 0 16px;font-size:18px;color:#1a1a1a;">チケット購入がありました</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <tr><td style="color:#666;padding:6px 0;width:110px;">お名前</td><td style="font-weight:700;">${normalizedName} 様</td></tr>
+      <tr><td style="color:#666;padding:6px 0;">メール</td><td>${normalizedEmail}</td></tr>
+      <tr><td style="color:#666;padding:6px 0;">券種</td><td>${TICKET_LABELS[ticketType]}</td></tr>
+      <tr><td style="color:#666;padding:6px 0;">大人</td><td>${quantity} 名</td></tr>
+      <tr><td style="color:#666;padding:6px 0;">小人</td><td>${safeChildQuantity} 名</td></tr>
+      <tr><td style="color:#666;padding:6px 0;">合計金額</td><td style="font-weight:800;">¥${validAmount.toLocaleString()}</td></tr>
+      <tr><td style="color:#666;padding:6px 0;">チケットNo</td><td style="font-family:monospace;">${ticketCode}</td></tr>
+      <tr><td style="color:#666;padding:6px 0;">注文ID</td><td style="font-family:monospace;font-size:11px;">${orderId}</td></tr>
+    </table>
+  </div>
+</body></html>`;
+        fetch(n8nUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: 'mitodouraku@gmail.com',
+            name: '水戸道楽TV 運営',
+            ticketType,
+            ticketLabel: TICKET_LABELS[ticketType],
+            quantity,
+            childQuantity: safeChildQuantity,
+            total: validAmount,
+            orderId,
+            ticketCode,
+            buyerName: normalizedName,
+            buyerEmail: normalizedEmail,
+            emailHtml: adminHtml,
+            emailSubject: `【旧車サミット2026】購入通知: ${normalizedName}様 / ${TICKET_LABELS[ticketType]} × ${quantity}`,
+            notificationType: 'admin_ticket_purchase',
+          }),
+          signal: adminController.signal,
+        })
+          .catch(e => console.error('[n8n] admin webhook error:', e, 'orderId:', orderId))
+          .finally(() => clearTimeout(adminTimeout));
       }
 
       return new Response(
