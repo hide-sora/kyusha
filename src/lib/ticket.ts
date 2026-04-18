@@ -1,10 +1,10 @@
 import QRCode from 'qrcode';
 
-/** KS26-XXXXX 形式のチケットコードを生成 */
+/** KS26-XXXXXXX 形式のチケットコードを生成（32^7 = 34B 通り、衝突率を十分低く抑える） */
 export function generateTicketCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 紛らわしい文字を除外
   let code = '';
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 7; i++) {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
   return `KS26-${code}`;

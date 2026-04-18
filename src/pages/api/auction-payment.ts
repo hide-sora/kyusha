@@ -32,6 +32,7 @@ export const POST: APIRoute = async ({ request }) => {
     amount?: number;
     name?: string;
     email?: string;
+    idempotencyKey?: string;
   };
 
   try {
@@ -43,14 +44,29 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
-  const { sourceId, itemId, amount, name, email } = body;
+  const { sourceId, itemId, amount, name, email, idempotencyKey } = body;
 
-  if (!sourceId || !itemId || !amount || !name || !email) {
+  if (typeof sourceId !== 'string' || typeof itemId !== 'string' || typeof name !== 'string' || typeof email !== 'string') {
     return new Response(
       JSON.stringify({ success: false, error: '必須項目が不足しています' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   }
+  if (!sourceId || !itemId || !name.trim() || !email.trim()) {
+    return new Response(
+      JSON.stringify({ success: false, error: '必須項目が不足しています' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  if (typeof amount !== 'number' || !Number.isInteger(amount) || amount <= 0 || amount > 100_000_000) {
+    return new Response(
+      JSON.stringify({ success: false, error: '金額が不正です' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedName = name.trim();
 
   // PocketBase からアイテム情報を取得して金額を検証
   const pbToken = await getPbToken();
@@ -88,35 +104,48 @@ export const POST: APIRoute = async ({ request }) => {
         : SquareEnvironment.Sandbox,
   });
 
+  // クライアントから渡された idempotencyKey を優先（リトライ時の二重決済を Square 側で防止）
+  const squareIdempotencyKey = (typeof idempotencyKey === 'string' && idempotencyKey.length >= 16 && idempotencyKey.length <= 45)
+    ? idempotencyKey
+    : randomUUID();
+
   try {
     const response = await client.payments.create({
       sourceId,
-      idempotencyKey: randomUUID(),
+      idempotencyKey: squareIdempotencyKey,
       amountMoney: {
         amount: BigInt(amount),
         currency: 'JPY',
       },
       note: `旧車サミット2026 チャリティーオークション - ${itemTitle}`,
-      buyerEmailAddress: email,
-      billingAddress: { firstName: name },
+      buyerEmailAddress: normalizedEmail,
+      billingAddress: { firstName: normalizedName },
     });
 
     if (response.payment?.status === 'COMPLETED') {
       const paymentId = response.payment.id ?? '';
 
-      // PocketBase に支払い記録を保存
-      fetch(`${PB_URL}/api/collections/auction_payments/records`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: pbToken },
-        body: JSON.stringify({
-          item: itemId,
-          amount,
-          payment_method: 'card',
-          payment_id: paymentId,
-          buyer_name: name,
-          buyer_email: email,
-        }),
-      }).catch(e => console.error('[PB] auction payment record error:', e));
+      // PocketBase に支払い記録を保存（await — 失敗時は決済済みだがログを残す）
+      try {
+        const pbRes = await fetch(`${PB_URL}/api/collections/auction_payments/records`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: pbToken },
+          body: JSON.stringify({
+            item: itemId,
+            amount,
+            payment_method: 'card',
+            payment_id: paymentId,
+            buyer_name: normalizedName,
+            buyer_email: normalizedEmail,
+          }),
+        });
+        if (!pbRes.ok) {
+          const errText = await pbRes.text().catch(() => '');
+          console.error('[PB] auction payment save failed:', pbRes.status, errText, 'paymentId:', paymentId, 'itemId:', itemId);
+        }
+      } catch (e) {
+        console.error('[PB] auction payment record error:', e, 'paymentId:', paymentId, 'itemId:', itemId);
+      }
 
       return new Response(
         JSON.stringify({ success: true, paymentId }),
