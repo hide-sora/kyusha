@@ -9,6 +9,41 @@ interface PVRecord {
   created?: string;
 }
 
+interface TicketPurchaseRecord {
+  ticket_type?: string;
+  quantity?: number;
+  child_quantity?: number;
+}
+
+const TICKET_LABELS: Record<string, string> = {
+  advance_car: '展示車両（前売）',
+  advance_general: '一般（前売）',
+  day_general: '一般（当日）',
+  test_1yen: 'テスト（1円）',
+};
+
+type TicketGroup = 'advance' | 'day' | 'other';
+const TICKET_GROUPS: Record<string, TicketGroup> = {
+  advance_car: 'advance',
+  advance_general: 'advance',
+  day_general: 'day',
+  test_1yen: 'other',
+};
+
+async function getPbToken(): Promise<string> {
+  const res = await fetch(`${PB_URL}/api/collections/_superusers/auth-with-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      identity: import.meta.env.PB_SUPERUSER_EMAIL,
+      password: import.meta.env.PB_SUPERUSER_PASSWORD,
+    }),
+  });
+  if (!res.ok) return '';
+  const data = await res.json() as { token?: string };
+  return data.token || '';
+}
+
 // ボットスキャン・静的ファイル等のノイズ
 const NOISE_RE = /^\/(robots\.txt|sw\.js|apple-touch-icon|wp-|wordpress|blog\/|web\/|wp\/|cms\/|shop\/|site\/|news\/|test\/|sito\/|website\/|2019\/|2020\/|xmlrpc|\.env|\.git|\.php)/i;
 const isNoise = (p: string) => NOISE_RE.test(p) || /\.(php|xml|asp|aspx)$/i.test(p) || p.startsWith('//');
@@ -125,6 +160,76 @@ export const GET: APIRoute = async () => {
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
 
+  // チケット販売集計（superuser 認証が必要）
+  const emptyGroup = () => ({ orders: 0, adults: 0, children: 0, totalCount: 0 });
+  const ticketStats = {
+    totalOrders: 0,
+    adultCount: 0,
+    childCount: 0,
+    totalCount: 0,
+    byType: [] as { type: string; label: string; group: TicketGroup; orders: number; adults: number; children: number }[],
+    groups: {
+      advance: emptyGroup(),
+      day: emptyGroup(),
+      other: emptyGroup(),
+    },
+    available: false as boolean,
+  };
+
+  try {
+    const pbToken = await getPbToken();
+    if (pbToken) {
+      const purchases: TicketPurchaseRecord[] = [];
+      let tpage = 1;
+      while (true) {
+        const res = await fetch(
+          `${PB_URL}/api/collections/ticket_purchases/records?perPage=500&page=${tpage}`,
+          { headers: { Authorization: pbToken } },
+        );
+        if (!res.ok) break;
+        const data = (await res.json()) as { items?: TicketPurchaseRecord[]; totalPages?: number };
+        if (data.items) purchases.push(...data.items);
+        if (!data.totalPages || tpage >= data.totalPages) break;
+        tpage++;
+      }
+
+      ticketStats.available = true;
+      const typeMap = new Map<string, { orders: number; adults: number; children: number }>();
+      for (const p of purchases) {
+        const t = p.ticket_type || 'unknown';
+        const group = TICKET_GROUPS[t] || 'other';
+        const adult = Math.max(0, Number(p.quantity) || 0);
+        const child = Math.max(0, Number(p.child_quantity) || 0);
+        ticketStats.totalOrders++;
+        ticketStats.adultCount += adult;
+        ticketStats.childCount += child;
+
+        const g = ticketStats.groups[group];
+        g.orders++;
+        g.adults += adult;
+        g.children += child;
+        g.totalCount += adult + child;
+
+        if (!typeMap.has(t)) typeMap.set(t, { orders: 0, adults: 0, children: 0 });
+        const entry = typeMap.get(t)!;
+        entry.orders++;
+        entry.adults += adult;
+        entry.children += child;
+      }
+      ticketStats.totalCount = ticketStats.adultCount + ticketStats.childCount;
+      ticketStats.byType = Array.from(typeMap.entries())
+        .map(([type, v]) => ({
+          type,
+          label: TICKET_LABELS[type] || type,
+          group: TICKET_GROUPS[type] || 'other',
+          ...v,
+        }))
+        .sort((a, b) => b.orders - a.orders);
+    }
+  } catch (e) {
+    console.error('[analytics] ticket stats error:', e);
+  }
+
   return json({
     setupRequired: false,
     timestampsAvailable,
@@ -136,5 +241,6 @@ export const GET: APIRoute = async () => {
     hourly,
     daily,
     referrers,
+    ticketStats,
   });
 };
