@@ -21,6 +21,38 @@ interface Referrer {
   count: number;
 }
 
+type TicketGroup = 'advance' | 'day' | 'other';
+
+interface TicketTypeStat {
+  type: string;
+  label: string;
+  group: TicketGroup;
+  orders: number;
+  adults: number;
+  children: number;
+}
+
+interface TicketGroupStat {
+  orders: number;
+  adults: number;
+  children: number;
+  totalCount: number;
+}
+
+interface TicketStats {
+  available: boolean;
+  totalOrders: number;
+  adultCount: number;
+  childCount: number;
+  totalCount: number;
+  byType: TicketTypeStat[];
+  groups: {
+    advance: TicketGroupStat;
+    day: TicketGroupStat;
+    other: TicketGroupStat;
+  };
+}
+
 interface AnalyticsData {
   setupRequired?: boolean;
   timestampsAvailable?: boolean;
@@ -32,6 +64,7 @@ interface AnalyticsData {
   hourly: HourBucket[];
   daily: DayBucket[];
   referrers: Referrer[];
+  ticketStats?: TicketStats;
 }
 
 const EMPTY: AnalyticsData = {
@@ -173,6 +206,100 @@ export default function AnalyticsDashboard() {
           </p>
         </div>
       </div>
+
+      {/* チケット販売 */}
+      {data.ticketStats?.available && (
+        <section className="rounded-2xl bg-surface-container-lowest p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="i-ph-ticket-duotone text-lg text-on-surface-variant" />
+            <h2 className="font-display font-700 text-base text-on-surface">チケット販売</h2>
+          </div>
+
+          {/* 合計 */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="rounded-xl p-3 text-center bg-surface-container">
+              <p className="text-[10px] text-on-surface-variant mb-1">件数</p>
+              <p className="font-display font-800 text-xl tabular-nums text-on-surface">
+                {data.ticketStats.totalOrders.toLocaleString()}
+                <span className="text-xs font-600 ml-0.5 text-on-surface-variant">件</span>
+              </p>
+            </div>
+            <div className="rounded-xl p-3 text-center bg-surface-container">
+              <p className="text-[10px] text-on-surface-variant mb-1">総枚数</p>
+              <p className="font-display font-800 text-xl tabular-nums text-on-surface">
+                {data.ticketStats.totalCount.toLocaleString()}
+                <span className="text-xs font-600 ml-0.5 text-on-surface-variant">枚</span>
+              </p>
+            </div>
+            <div className="rounded-xl p-3 text-center bg-surface-container">
+              <p className="text-[10px] text-on-surface-variant mb-1">大人/小人</p>
+              <p className="font-display font-800 text-base tabular-nums text-on-surface leading-tight">
+                {data.ticketStats.adultCount.toLocaleString()}
+                <span className="text-[10px] font-600 text-on-surface-variant">/</span>
+                {data.ticketStats.childCount.toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          {/* 前売 / 当日 */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {([
+              { key: 'advance' as const, label: '前売券', stat: data.ticketStats.groups.advance, accent: 'text-primary' },
+              { key: 'day' as const, label: '当日券', stat: data.ticketStats.groups.day, accent: 'text-tertiary' },
+            ]).map((g) => (
+              <div key={g.key} className="rounded-xl p-3 bg-surface-container">
+                <p className={`text-[10px] font-700 tracking-widest mb-2 ${g.accent}`}>{g.label}</p>
+                <div className="flex items-baseline gap-1 mb-0.5">
+                  <span className="font-display font-800 text-lg tabular-nums text-on-surface">
+                    {g.stat.orders.toLocaleString()}
+                  </span>
+                  <span className="text-[10px] text-on-surface-variant">件</span>
+                  <span className="ml-auto font-display font-800 text-lg tabular-nums text-on-surface">
+                    {g.stat.totalCount.toLocaleString()}
+                  </span>
+                  <span className="text-[10px] text-on-surface-variant">枚</span>
+                </div>
+                <p className="text-[10px] text-on-surface-variant tabular-nums">
+                  大人 {g.stat.adults} / 小人 {g.stat.children}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {data.ticketStats.byType.length > 0 && (
+            <div className="flex flex-col gap-4">
+              {(['advance', 'day', 'other'] as TicketGroup[]).map((group) => {
+                const items = data.ticketStats!.byType.filter((t) => t.group === group);
+                if (items.length === 0) return null;
+                const heading = group === 'advance' ? '前売券 内訳' : group === 'day' ? '当日券 内訳' : 'その他';
+                return (
+                  <div key={group} className="flex flex-col gap-2">
+                    <p className="text-[10px] text-on-surface-variant tracking-widest uppercase font-600">{heading}</p>
+                    {items.map((t) => (
+                      <div key={t.type} className="flex items-center justify-between py-1.5 border-b border-outline-variant/20 last:border-0">
+                        <span className="text-sm text-on-surface font-500 truncate">{t.label}</span>
+                        <div className="flex items-baseline gap-2 ml-2 shrink-0">
+                          <span className="text-[11px] text-on-surface-variant tabular-nums">
+                            {t.orders}件
+                          </span>
+                          <span className="font-display font-700 text-sm text-on-surface tabular-nums">
+                            {(t.adults + t.children).toLocaleString()}枚
+                          </span>
+                          {t.children > 0 && (
+                            <span className="text-[10px] text-on-surface-variant tabular-nums">
+                              (大{t.adults}/小{t.children})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* ページ別アクセス */}
       <section className="rounded-2xl bg-surface-container-lowest p-4 shadow-sm">
