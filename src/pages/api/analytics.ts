@@ -200,9 +200,13 @@ export const GET: APIRoute = async () => {
         const group = TICKET_GROUPS[t] || 'other';
         const adult = Math.max(0, Number(p.quantity) || 0);
         const child = Math.max(0, Number(p.child_quantity) || 0);
-        ticketStats.totalOrders++;
-        ticketStats.adultCount += adult;
-        ticketStats.childCount += child;
+
+        // テスト決済（1円）は合計枚数から除外。グループ別集計・byType には残す
+        if (group !== 'other') {
+          ticketStats.totalOrders++;
+          ticketStats.adultCount += adult;
+          ticketStats.childCount += child;
+        }
 
         const g = ticketStats.groups[group];
         g.orders++;
