@@ -63,7 +63,7 @@ const hasImages = item.images && item.images.length > 0;
             )}
 
             {/* 画像タップで拡大 */}
-            <button type="button" id="hero-expand" class="absolute inset-0 w-full h-full cursor-zoom-in" aria-label="画像を拡大" />
+            <button type="button" id="hero-expand" class="absolute inset-0 w-full h-full cursor-zoom-in bg-transparent border-0 p-0" aria-label="画像を拡大" />
           </div>
         ) : (
           <div class="aspect-[4/3] flex-center" style={`background: ${item.gradient}`}>
