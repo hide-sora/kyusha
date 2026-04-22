@@ -13,6 +13,30 @@ Write-Host ""
 Write-Host "=== KYUSHA SUMMIT DEPLOY ===" -ForegroundColor Cyan
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 
+# Step 0: .env preflight check
+# Astro 5 は import.meta.env.* を build 時に inline するため、.env が無い worktree で
+# build すると server env 参照が全て undefined になる。cookbook 5.5 参照。
+Write-Host "[0/3] Preflight: .env check..." -ForegroundColor Yellow
+if (-not (Test-Path ".env")) {
+    Write-Host "  .env NOT FOUND" -ForegroundColor Red
+    Write-Host "  Copy from main checkout: cp ~/.Claude/kyusha-summit/.env ./.env" -ForegroundColor Yellow
+    Write-Host "  (Astro inlines import.meta.env at build time; missing .env silently breaks server endpoints)" -ForegroundColor Gray
+    exit 1
+}
+$envContent = Get-Content ".env" -Raw -Encoding UTF8
+$requiredKeys = @("PB_SUPERUSER_EMAIL", "PB_SUPERUSER_PASSWORD", "PUBLIC_PB_URL", "SQUARE_ACCESS_TOKEN")
+$missingKeys = @()
+foreach ($key in $requiredKeys) {
+    if ($envContent -notmatch "(?m)^\s*$key[ \t]*=[ \t]*\S") {
+        $missingKeys += $key
+    }
+}
+if ($missingKeys.Count -gt 0) {
+    Write-Host "  .env is missing or empty: $($missingKeys -join ', ')" -ForegroundColor Red
+    exit 1
+}
+Write-Host "  OK" -ForegroundColor Green
+
 # Step 1: Build (skip astro check for speed)
 Write-Host "[1/3] Building..." -ForegroundColor Yellow
 $buildStart = $sw.Elapsed
